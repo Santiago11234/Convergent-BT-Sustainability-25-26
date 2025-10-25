@@ -1,91 +1,76 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, Image, Modal, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { ProductCategory } from '@/types';
+import { useProducts } from '@/hooks/useProducts';
 
-// Mock data for listings - replace with real data from your backend
-const MOCK_LISTINGS = [
-  {
-    id: '1',
-    title: 'Fresh Organic Tomatoes',
-    seller: 'Green Valley Farm',
-    price: 4.99,
-    unit: 'lb',
-    distance: 2.5,
-    organic: true,
-    category: 'Vegetables',
-    image: '🍅',
-    location: 'Austin, TX',
-  },
-  {
-    id: '2',
-    title: 'Farm Fresh Eggs',
-    seller: 'Sunny Side Farm',
-    price: 6.50,
-    unit: 'dozen',
-    distance: 1.2,
-    organic: true,
-    category: 'Dairy & Eggs',
-    image: '🥚',
-    location: 'Austin, TX',
-  },
-  {
-    id: '3',
-    title: 'Sweet Strawberries',
-    seller: 'Berry Patch Gardens',
-    price: 8.99,
-    unit: 'lb',
-    distance: 3.8,
-    organic: false,
-    category: 'Fruits',
-    image: '🍓',
-    location: 'Round Rock, TX',
-  },
-  {
-    id: '4',
-    title: 'Crisp Lettuce Mix',
-    seller: 'Urban Greens',
-    price: 3.99,
-    unit: 'bunch',
-    distance: 0.8,
-    organic: true,
-    category: 'Vegetables',
-    image: '🥬',
-    location: 'Austin, TX',
-  },
-];
 
-const CATEGORIES = ['All', 'Vegetables', 'Fruits', 'Dairy & Eggs', 'Herbs', 'Other'];
+const CATEGORIES: ('All' | ProductCategory)[] = ['All', 'vegetables', 'fruits', 'eggs', 'herbs', 'dairy', 'other'];
+
+// Helper to capitalize category names
+const formatCategoryName = (category: string): string => {
+  return category.charAt(0).toUpperCase() + category.slice(1);
+};
 
 export default function MarketplaceScreen() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState<'All' | ProductCategory>('All');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 50]);
   const [distanceRange, setDistanceRange] = useState(10);
-  const [organicOnly, setOrganicOnly] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
+  const [sortBy, setSortBy] = useState<'distance' | 'price-low' | 'price-high' | 'stock'>('distance');
 
-  // Filter listings based on search and filters
-  const filteredListings = MOCK_LISTINGS.filter(listing => {
-    const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         listing.seller.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || listing.category === selectedCategory;
-    const matchesPrice = listing.price >= priceRange[0] && listing.price <= priceRange[1];
-    const matchesDistance = listing.distance <= distanceRange;
-    const matchesOrganic = !organicOnly || listing.organic;
-
-    return matchesSearch && matchesCategory && matchesPrice && matchesDistance && matchesOrganic;
+  // Fetch products from Supabase with filtering
+  const { products, loading, error } = useProducts({
+    category: selectedCategory,
+    minPrice: priceRange[0],
+    maxPrice: priceRange[1],
+    maxDistance: distanceRange,
+    searchQuery: searchQuery.trim(),
   });
 
-  const renderListingCard = ({ item }: { item: typeof MOCK_LISTINGS[0] }) => (
+  // Client-side sorting
+  const sortedProducts = useMemo(() => {
+    const productsCopy = [...products];
+
+    switch (sortBy) {
+      case 'distance':
+        return productsCopy.sort((a, b) => a.distance - b.distance);
+      case 'price-low':
+        return productsCopy.sort((a, b) => a.price - b.price);
+      case 'price-high':
+        return productsCopy.sort((a, b) => b.price - a.price);
+      case 'stock':
+        return productsCopy.sort((a, b) => b.quantity_available - a.quantity_available);
+      default:
+        return productsCopy;
+    }
+  }, [products, sortBy]);
+
+  const renderListingCard = ({ item }: { item: typeof products[0] }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm shadow-gray-200/50"
       activeOpacity={0.7}
+      onPress={() => router.push(`/product/${item.id}`)}
     >
       <View className="flex-row">
-        {/* Product Image/Icon */}
-        <View className="w-20 h-20 rounded-xl bg-green-50 items-center justify-center mr-3">
-          <Text className="text-4xl">{item.image}</Text>
+        {/* Product Image */}
+        <View className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden mr-3">
+          {item.images && item.images.length > 0 && item.images[0] ? (
+            <Image
+              source={{ uri: item.images[0] }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full items-center justify-center bg-green-50">
+              <Ionicons name="image-outline" size={32} color="#9CA3AF" />
+            </View>
+          )}
         </View>
 
         {/* Product Details */}
@@ -94,26 +79,30 @@ export default function MarketplaceScreen() {
             <Text className="text-lg font-bold text-gray-900 flex-1" numberOfLines={1}>
               {item.title}
             </Text>
-            {item.organic && (
-              <View className="bg-green-100 px-2 py-1 rounded-full ml-2">
-                <Text className="text-xs font-semibold text-green-700">Organic</Text>
-              </View>
-            )}
+            <View className={`px-2 py-1 rounded-full ml-2 ${
+              item.quantity_available < 10 ? 'bg-orange-100' : 'bg-green-100'
+            }`}>
+              <Text className={`text-xs font-semibold ${
+                item.quantity_available < 10 ? 'text-orange-700' : 'text-green-700'
+              }`}>
+                {item.quantity_available} in stock
+              </Text>
+            </View>
           </View>
 
           <View className="flex-row items-center mb-2">
             <Ionicons name="person-outline" size={14} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-1">{item.seller}</Text>
+            <Text className="text-sm text-gray-600 ml-1">{item.seller.name}</Text>
           </View>
 
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <Ionicons name="location-outline" size={14} color="#6B7280" />
-              <Text className="text-xs text-gray-500 ml-1">{item.distance} miles away</Text>
+              <Text className="text-xs text-gray-500 ml-1">{item.distance.toFixed(1)} miles away</Text>
             </View>
             <Text className="text-xl font-bold text-primary">
-              ${item.price}
-              <Text className="text-sm text-gray-500 font-normal">/{item.unit}</Text>
+              ${item.price.toFixed(2)}
+              <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure}</Text>
             </Text>
           </View>
         </View>
@@ -169,7 +158,7 @@ export default function MarketplaceScreen() {
             <TouchableOpacity
               key={category}
               onPress={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full ${
+              className={`px-4 py-2 mr-3 rounded-full ${
                 selectedCategory === category
                   ? 'bg-primary'
                   : 'bg-gray-100'
@@ -183,7 +172,7 @@ export default function MarketplaceScreen() {
                     : 'text-gray-700'
                 }`}
               >
-                {category}
+                {formatCategoryName(category)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -195,11 +184,11 @@ export default function MarketplaceScreen() {
         <View className="bg-white px-4 py-4 border-b border-gray-100">
           {/* Distance Filter */}
           <View className="mb-4">
-            <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center justify-between mb-3">
               <Text className="text-sm font-semibold text-gray-900">Distance Range</Text>
               <Text className="text-sm text-primary font-bold">≤ {distanceRange} miles</Text>
             </View>
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-3">
               {[5, 10, 25, 50].map(distance => (
                 <TouchableOpacity
                   key={distance}
@@ -221,14 +210,14 @@ export default function MarketplaceScreen() {
           </View>
 
           {/* Price Range Filter */}
-          <View className="mb-4">
-            <View className="flex-row items-center justify-between mb-2">
+          <View>
+            <View className="flex-row items-center justify-between mb-3">
               <Text className="text-sm font-semibold text-gray-900">Price Range</Text>
               <Text className="text-sm text-primary font-bold">
                 ${priceRange[0]} - ${priceRange[1]}
               </Text>
             </View>
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setPriceRange([0, 10])}
                 className={`flex-1 py-2 rounded-lg ${
@@ -273,25 +262,6 @@ export default function MarketplaceScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Organic Filter */}
-          <TouchableOpacity
-            onPress={() => setOrganicOnly(!organicOnly)}
-            className="flex-row items-center justify-between py-3 px-4 bg-gray-50 rounded-xl"
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center">
-              <View
-                className={`w-6 h-6 rounded-md border-2 items-center justify-center mr-3 ${
-                  organicOnly ? 'bg-primary border-primary' : 'border-gray-300'
-                }`}
-              >
-                {organicOnly && <Ionicons name="checkmark" size={16} color="white" />}
-              </View>
-              <Text className="text-base font-semibold text-gray-900">Organic Only</Text>
-            </View>
-            <Ionicons name="leaf" size={20} color="#22C55E" />
-          </TouchableOpacity>
         </View>
       )}
 
@@ -299,29 +269,176 @@ export default function MarketplaceScreen() {
       <View className="flex-1 px-4 pt-4">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-sm font-semibold text-gray-600">
-            {filteredListings.length} {filteredListings.length === 1 ? 'listing' : 'listings'} found
+            {sortedProducts.length} {sortedProducts.length === 1 ? 'listing' : 'listings'} found
           </Text>
-          <TouchableOpacity className="flex-row items-center">
+          <TouchableOpacity
+            className="flex-row items-center"
+            onPress={() => setShowSortModal(true)}
+          >
             <Text className="text-sm font-semibold text-gray-600 mr-1">Sort by</Text>
             <Ionicons name="swap-vertical" size={16} color="#6B7280" />
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={filteredListings}
-          renderItem={renderListingCard}
-          keyExtractor={item => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={
-            <View className="items-center justify-center py-20">
-              <Ionicons name="search-outline" size={64} color="#D1D5DB" />
-              <Text className="text-lg font-semibold text-gray-400 mt-4">No listings found</Text>
-              <Text className="text-sm text-gray-400 mt-1">Try adjusting your filters</Text>
-            </View>
-          }
-        />
+        {/* Loading State */}
+        {loading && (
+          <View className="items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#22C55E" />
+            <Text className="text-gray-600 mt-4">Loading products...</Text>
+          </View>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <View className="items-center justify-center py-20">
+            <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text className="text-lg font-semibold text-gray-900 mt-4">Error loading products</Text>
+            <Text className="text-sm text-gray-600 mt-1">{error}</Text>
+          </View>
+        )}
+
+        {/* Products List */}
+        {!loading && !error && (
+          <FlatList
+            data={sortedProducts}
+            renderItem={renderListingCard}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-20">
+                <Ionicons name="search-outline" size={64} color="#D1D5DB" />
+                <Text className="text-lg font-semibold text-gray-400 mt-4">No listings found</Text>
+                <Text className="text-sm text-gray-400 mt-1">Try adjusting your filters</Text>
+              </View>
+            }
+          />
+        )}
       </View>
+
+      {/* Sort Modal */}
+      <Modal
+        visible={showSortModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowSortModal(false)}
+          className="flex-1 bg-black/50 justify-end"
+        >
+          <TouchableOpacity activeOpacity={1}>
+            <View className="bg-white rounded-t-3xl px-6 py-6">
+              <Text className="text-xl font-bold text-gray-900 mb-4">Sort By</Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortBy('distance');
+                  setShowSortModal(false);
+                }}
+                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
+                  sortBy === 'distance' ? 'bg-green-50' : ''
+                }`}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="location"
+                    size={20}
+                    color={sortBy === 'distance' ? '#22C55E' : '#6B7280'}
+                  />
+                  <Text className={`ml-3 font-semibold ${
+                    sortBy === 'distance' ? 'text-primary' : 'text-gray-700'
+                  }`}>
+                    Nearest First
+                  </Text>
+                </View>
+                {sortBy === 'distance' && (
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortBy('price-low');
+                  setShowSortModal(false);
+                }}
+                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
+                  sortBy === 'price-low' ? 'bg-green-50' : ''
+                }`}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="arrow-down"
+                    size={20}
+                    color={sortBy === 'price-low' ? '#22C55E' : '#6B7280'}
+                  />
+                  <Text className={`ml-3 font-semibold ${
+                    sortBy === 'price-low' ? 'text-primary' : 'text-gray-700'
+                  }`}>
+                    Price: Low to High
+                  </Text>
+                </View>
+                {sortBy === 'price-low' && (
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortBy('price-high');
+                  setShowSortModal(false);
+                }}
+                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
+                  sortBy === 'price-high' ? 'bg-green-50' : ''
+                }`}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="arrow-up"
+                    size={20}
+                    color={sortBy === 'price-high' ? '#22C55E' : '#6B7280'}
+                  />
+                  <Text className={`ml-3 font-semibold ${
+                    sortBy === 'price-high' ? 'text-primary' : 'text-gray-700'
+                  }`}>
+                    Price: High to Low
+                  </Text>
+                </View>
+                {sortBy === 'price-high' && (
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setSortBy('stock');
+                  setShowSortModal(false);
+                }}
+                className={`flex-row items-center justify-between py-4 px-4 rounded-xl ${
+                  sortBy === 'stock' ? 'bg-green-50' : ''
+                }`}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="cube"
+                    size={20}
+                    color={sortBy === 'stock' ? '#22C55E' : '#6B7280'}
+                  />
+                  <Text className={`ml-3 font-semibold ${
+                    sortBy === 'stock' ? 'text-primary' : 'text-gray-700'
+                  }`}>
+                    Most in Stock
+                  </Text>
+                </View>
+                {sortBy === 'stock' && (
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
