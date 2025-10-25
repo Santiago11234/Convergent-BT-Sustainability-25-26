@@ -45,22 +45,22 @@ export default function MarketplaceScreen() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filteredProducts = filteredProducts.filter(product => 
-        product.title.toLowerCase().includes(query) ||
+        product.title?.toLowerCase().includes(query) ||
         product.description?.toLowerCase().includes(query) ||
-        product.tags.some(tag => tag.toLowerCase().includes(query))
+        (product.tags && product.tags.some(tag => tag?.toLowerCase().includes(query)))
       );
     }
 
     // Sort products
     switch (sortBy) {
       case 'distance':
-        return filteredProducts.sort((a, b) => a.distance - b.distance);
+        return filteredProducts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
       case 'price-low':
-        return filteredProducts.sort((a, b) => a.price - b.price);
+        return filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
       case 'price-high':
-        return filteredProducts.sort((a, b) => b.price - a.price);
+        return filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
       case 'stock':
-        return filteredProducts.sort((a, b) => b.quantity_available - a.quantity_available);
+        return filteredProducts.sort((a, b) => (b.quantity_available || 0) - (a.quantity_available || 0));
       default:
         return filteredProducts;
     }
@@ -92,22 +92,22 @@ export default function MarketplaceScreen() {
         <View className="flex-1">
           <View className="flex-row items-start justify-between mb-1">
             <Text className="text-lg font-bold text-gray-900 flex-1" numberOfLines={1}>
-              {item.title}
+              {item.title || 'Untitled Product'}
             </Text>
             <View className={`px-2 py-1 rounded-full ml-2 ${
-              item.quantity_available < 10 ? 'bg-orange-100' : 'bg-green-100'
+              (item.quantity_available || 0) < 10 ? 'bg-orange-100' : 'bg-green-100'
             }`}>
               <Text className={`text-xs font-semibold ${
-                item.quantity_available < 10 ? 'text-orange-700' : 'text-green-700'
+                (item.quantity_available || 0) < 10 ? 'text-orange-700' : 'text-green-700'
               }`}>
-                {item.quantity_available} in stock
+                {item.quantity_available || 0} in stock
               </Text>
             </View>
           </View>
 
           <View className="flex-row items-center mb-2">
             <Ionicons name="person-outline" size={14} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-1">{item.seller.name}</Text>
+            <Text className="text-sm text-gray-600 ml-1">{item.seller?.name || 'Unknown Seller'}</Text>
           </View>
 
           <View className="flex-row items-center justify-between">
@@ -117,7 +117,7 @@ export default function MarketplaceScreen() {
             </View>
             <Text className="text-xl font-bold text-primary">
               ${(item.price || 0).toFixed(2)}
-              <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure}</Text>
+              <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure || 'unit'}</Text>
             </Text>
           </View>
         </View>
