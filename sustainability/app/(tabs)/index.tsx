@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,8 +11,13 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function LandingScreen() {
+  const { signOut } = useAuth();
+  const router = useRouter();
+
   // Animation values
   const logoScale = useSharedValue(0);
   const logoRotate = useSharedValue(0);
@@ -23,6 +28,16 @@ export default function LandingScreen() {
   const card3Scale = useSharedValue(0);
   const ctaY = useSharedValue(100);
   const floatY = useSharedValue(0);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      Alert.alert('Success', 'You have been logged out');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to log out. Please try again.');
+      console.error('Logout error:', error);
+    }
+  };
 
   useEffect(() => {
     // Logo entrance - subtle
@@ -95,6 +110,15 @@ export default function LandingScreen() {
       <View className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-green-50 opacity-70" />
       <View className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-green-50 opacity-50" />
 
+      {/* Logout Button */}
+      <TouchableOpacity
+        onPress={handleLogout}
+        className="absolute top-12 right-6 z-10 bg-white rounded-full p-3 shadow-lg shadow-gray-400/30 border border-gray-100"
+        activeOpacity={0.7}
+      >
+        <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+      </TouchableOpacity>
+
       <ScrollView
         className="flex-1"
         // contentContainerClassName="pb-10"
@@ -129,19 +153,24 @@ export default function LandingScreen() {
 
         {/* Feature Cards */}
         <View className="px-6 gap-4 mb-10">
-          {/* Card 1 */}
+          {/* Card 1 - Marketplace */}
           <Animated.View style={card1AnimatedStyle}>
-            <View className="bg-white rounded-3xl p-6 border-2 border-green-100 shadow-sm shadow-primary/10">
-              <View className="w-14 h-14 rounded-2xl bg-green-100 items-center justify-center mb-4">
-                <Ionicons name="storefront" size={28} color="#22C55E" />
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/marketplace')}
+              activeOpacity={0.7}
+            >
+              <View className="bg-white rounded-3xl p-6 border-2 border-green-100 shadow-sm shadow-primary/10">
+                <View className="w-14 h-14 rounded-2xl bg-green-100 items-center justify-center mb-4">
+                  <Ionicons name="storefront" size={28} color="#22C55E" />
+                </View>
+                <Text className="text-xl font-bold text-gray-900 mb-2">
+                  Local Marketplace
+                </Text>
+                <Text className="text-sm text-gray-600 leading-5">
+                  Browse fresh produce from suburban farmers in your area
+                </Text>
               </View>
-              <Text className="text-xl font-bold text-gray-900 mb-2">
-                Local Marketplace
-              </Text>
-              <Text className="text-sm text-gray-600 leading-5">
-                Browse fresh produce from suburban farmers in your area
-              </Text>
-            </View>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Card 2 */}
@@ -178,6 +207,7 @@ export default function LandingScreen() {
         {/* CTA Buttons */}
         <Animated.View style={ctaAnimatedStyle} className="px-6 gap-3 mb-10">
           <TouchableOpacity
+            onPress={() => router.push('/(tabs)/marketplace')}
             className="bg-primary rounded-2xl py-5 px-8 flex-row items-center justify-center gap-2 shadow-lg shadow-primary/40"
             activeOpacity={0.8}
           >
@@ -186,6 +216,7 @@ export default function LandingScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => router.push('/(tabs)/marketplace')}
             className="bg-transparent border-2 border-primary rounded-2xl py-5 px-8 items-center"
             activeOpacity={0.7}
           >
