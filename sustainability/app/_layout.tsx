@@ -8,6 +8,7 @@ import '../global.css';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { MarketplaceProvider } from '@/contexts/MarketplaceContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -50,10 +51,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <RootLayoutNav />
-          <StatusBar style="auto" />
-        </ThemeProvider>
+        <MarketplaceProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <RootLayoutNav />
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </MarketplaceProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

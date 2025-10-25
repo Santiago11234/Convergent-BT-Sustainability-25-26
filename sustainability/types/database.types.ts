@@ -83,6 +83,15 @@ export interface Product {
   favorite_count: number;
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
+  // New fields added for create-post functionality
+  payment_methods: string[];
+  other_payment_method: string | null;
+  pickup_instructions: string | null;
+  pickup_latitude: number | null;
+  pickup_longitude: number | null;
+  is_residential: boolean;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface Post {

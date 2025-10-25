@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ProductCategory } from '@/types';
-import { useProducts } from '@/hooks/useProducts';
+import { useMarketplace } from '@/contexts/MarketplaceContext';
 
 
 const CATEGORIES: ('All' | ProductCategory)[] = ['All', 'vegetables', 'fruits', 'eggs', 'herbs', 'dairy', 'other'];
@@ -16,6 +16,7 @@ const formatCategoryName = (category: string): string => {
 
 export default function MarketplaceScreen() {
   const router = useRouter();
+  const { products, loading } = useMarketplace();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'All' | ProductCategory>('All');
@@ -24,32 +25,46 @@ export default function MarketplaceScreen() {
   const [showSortModal, setShowSortModal] = useState(false);
   const [sortBy, setSortBy] = useState<'distance' | 'price-low' | 'price-high' | 'stock'>('distance');
 
-  // Fetch products from Supabase with filtering
-  const { products, loading, error } = useProducts({
-    category: selectedCategory,
-    minPrice: priceRange[0],
-    maxPrice: priceRange[1],
-    maxDistance: distanceRange,
-    searchQuery: searchQuery.trim(),
-  });
+  // Client-side filtering and sorting
+  const filteredAndSortedProducts = useMemo(() => {
+    let filteredProducts = [...products];
 
-  // Client-side sorting
-  const sortedProducts = useMemo(() => {
-    const productsCopy = [...products];
+    // Filter by category
+    if (selectedCategory !== 'All') {
+      filteredProducts = filteredProducts.filter(product => 
+        product.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
 
+    // Filter by price range
+    filteredProducts = filteredProducts.filter(product => 
+      product.price >= priceRange[0] && product.price <= priceRange[1]
+    );
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filteredProducts = filteredProducts.filter(product => 
+        product.title.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.tags.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort products
     switch (sortBy) {
       case 'distance':
-        return productsCopy.sort((a, b) => a.distance - b.distance);
+        return filteredProducts.sort((a, b) => a.distance - b.distance);
       case 'price-low':
-        return productsCopy.sort((a, b) => a.price - b.price);
+        return filteredProducts.sort((a, b) => a.price - b.price);
       case 'price-high':
-        return productsCopy.sort((a, b) => b.price - a.price);
+        return filteredProducts.sort((a, b) => b.price - a.price);
       case 'stock':
-        return productsCopy.sort((a, b) => b.quantity_available - a.quantity_available);
+        return filteredProducts.sort((a, b) => b.quantity_available - a.quantity_available);
       default:
-        return productsCopy;
+        return filteredProducts;
     }
-  }, [products, sortBy]);
+  }, [products, selectedCategory, priceRange, searchQuery, sortBy]);
 
   const renderListingCard = ({ item }: { item: typeof products[0] }) => (
     <TouchableOpacity
@@ -98,10 +113,10 @@ export default function MarketplaceScreen() {
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <Ionicons name="location-outline" size={14} color="#6B7280" />
-              <Text className="text-xs text-gray-500 ml-1">{item.distance.toFixed(1)} miles away</Text>
+              <Text className="text-xs text-gray-500 ml-1">{(item.distance || 0).toFixed(1)} miles away</Text>
             </View>
             <Text className="text-xl font-bold text-primary">
-              ${item.price.toFixed(2)}
+              ${(item.price || 0).toFixed(2)}
               <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure}</Text>
             </Text>
           </View>
@@ -269,7 +284,7 @@ export default function MarketplaceScreen() {
       <View className="flex-1 px-4 pt-4">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-sm font-semibold text-gray-600">
-            {sortedProducts.length} {sortedProducts.length === 1 ? 'listing' : 'listings'} found
+            {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'listing' : 'listings'} found
           </Text>
           <TouchableOpacity
             className="flex-row items-center"
@@ -288,19 +303,10 @@ export default function MarketplaceScreen() {
           </View>
         )}
 
-        {/* Error State */}
-        {error && !loading && (
-          <View className="items-center justify-center py-20">
-            <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-            <Text className="text-lg font-semibold text-gray-900 mt-4">Error loading products</Text>
-            <Text className="text-sm text-gray-600 mt-1">{error}</Text>
-          </View>
-        )}
-
         {/* Products List */}
-        {!loading && !error && (
+        {!loading && (
           <FlatList
-            data={sortedProducts}
+            data={filteredAndSortedProducts}
             renderItem={renderListingCard}
             keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
