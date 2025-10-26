@@ -22,49 +22,67 @@ export default function TabLayout() {
           fontWeight: '600',
         },
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
-      />
+      {/* Feed - First Tab (Default Landing) */}
       <Tabs.Screen
         name="feed"
         options={{
-          title: "Feed",
+          title: "",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid" size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-        name="createProduct"
-        options={{
-          title: "Sell",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
-          ),
-        }}
-      />
+      {/* Marketplace - Second Tab */}
       <Tabs.Screen
         name="marketplace"
         options={{
-          title: "Marketplace",
+          title: "",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="storefront" size={size} color={color} />
           ),
         }}
       />
+      {/* My Selling - Third Tab */}
       <Tabs.Screen
         name="seller"
         options={{
-          title: "My Selling",
+          title: "",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase" size={size} color={color} />
           ),
+        }}
+      />
+      {/* Community - Fourth Tab */}
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: "",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Profile - Fifth Tab */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Hide index redirect and createProduct from tabs */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="createProduct"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

@@ -32,6 +32,7 @@ export interface MarketplacePost {
 interface MarketplaceContextType {
   products: (ProductWithSeller & { distance: number })[];
   addProduct: (product: Omit<ProductInsert, 'seller_id'>) => Promise<void>;
+  loadProducts: () => Promise<void>;
   newProductId: string | null;
   clearNewProductId: () => void;
   loading: boolean;
@@ -217,7 +218,7 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <MarketplaceContext.Provider value={{ products, addProduct, newProductId, clearNewProductId, loading }}>
+    <MarketplaceContext.Provider value={{ products, addProduct, loadProducts, newProductId, clearNewProductId, loading }}>
       {children}
     </MarketplaceContext.Provider>
   );

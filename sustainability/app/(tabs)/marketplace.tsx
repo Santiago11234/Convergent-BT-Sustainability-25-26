@@ -132,7 +132,16 @@ export default function MarketplaceScreen() {
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       {/* Header */}
       <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
-        <Text className="text-3xl font-black text-gray-900 mb-4">Marketplace</Text>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-3xl font-black text-gray-900">Marketplace</Text>
+          <TouchableOpacity 
+            onPress={() => router.push('/(tabs)/createProduct')}
+            className="bg-primary px-4 py-2 rounded-xl flex-row items-center"
+          >
+            <Ionicons name="add-circle" size={20} color="white" />
+            <Text className="text-white font-semibold ml-2">Sell</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Search Bar */}
         <View className="flex-row items-center gap-2 mb-3">

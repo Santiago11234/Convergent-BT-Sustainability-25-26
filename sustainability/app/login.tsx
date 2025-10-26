@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { supabase } from '@/lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const { signInWithGoogle, loading } = useAuth();
+  const { signInWithGoogle, loading, user } = useAuth();
   const [isSigningIn, setIsSigningIn] = React.useState(false);
+  const [showRoleSelection, setShowRoleSelection] = React.useState(false);
 
   const handleGoogleSignIn = async () => {
     console.log("Button pressed!"); // Test if button works at all
@@ -17,6 +19,20 @@ export default function LoginScreen() {
       setIsSigningIn(true);
       console.log("signing in with google");
       await signInWithGoogle();
+      // Check if user needs to select a role
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Check if user has a role set in their profile
+        const { data: profile } = await supabase
+          .from('users')
+          .select('is_seller')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (!profile?.is_seller && !profile?.has_set_role) {
+          setShowRoleSelection(true);
+        }
+      }
       // Navigation will be handled by auth state change
       console.log("signed in successfully");
     } catch (error) {
@@ -24,6 +40,42 @@ export default function LoginScreen() {
       alert('Failed to sign in with Google. Please try again.');
     } finally {
       setIsSigningIn(false);
+    }
+  };
+
+  const handleRoleSelection = async (role: 'buyer' | 'seller') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const isSeller = role === 'seller';
+      
+      // Update user profile
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          is_seller: isSeller,
+          has_set_role: true 
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating user role:', error);
+        Alert.alert('Error', 'Failed to save your preference');
+        return;
+      }
+
+      setShowRoleSelection(false);
+      
+      if (isSeller) {
+        Alert.alert(
+          'Welcome, Seller!',
+          'Set up your seller profile to start selling.'
+        );
+      }
+    } catch (error) {
+      console.error('Error in role selection:', error);
+      Alert.alert('Error', 'Failed to save your preference');
     }
   };
 
@@ -105,6 +157,59 @@ export default function LoginScreen() {
           By continuing, you agree to our Terms of Service and Privacy Policy
         </Text>
       </View>
+
+      {/* Role Selection Modal */}
+      <Modal
+        visible={showRoleSelection}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRoleSelection(false)}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-4">
+          <View className="bg-white rounded-3xl p-6 w-full max-w-md">
+            <Text className="text-2xl font-bold text-gray-900 text-center mb-2">
+              Welcome! How will you use the app?
+            </Text>
+            <Text className="text-sm text-gray-600 text-center mb-6">
+              Choose your primary purpose on the platform
+            </Text>
+
+            {/* Buyer Option */}
+            <TouchableOpacity
+              onPress={() => handleRoleSelection('buyer')}
+              className="bg-green-50 rounded-2xl p-6 mb-4 border-2 border-green-200"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center mb-2">
+                <View className="w-12 h-12 rounded-full bg-green-100 items-center justify-center">
+                  <Ionicons name="cart" size={24} color="#22C55E" />
+                </View>
+                <Text className="text-xl font-bold text-gray-900 ml-3">I'm a Buyer</Text>
+              </View>
+              <Text className="text-sm text-gray-600">
+                Browse and purchase fresh produce from local sellers
+              </Text>
+            </TouchableOpacity>
+
+            {/* Seller Option */}
+            <TouchableOpacity
+              onPress={() => handleRoleSelection('seller')}
+              className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200"
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center mb-2">
+                <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center">
+                  <Ionicons name="storefront" size={24} color="#3B82F6" />
+                </View>
+                <Text className="text-xl font-bold text-gray-900 ml-3">I'm a Seller</Text>
+              </View>
+              <Text className="text-sm text-gray-600">
+                Sell your products and reach local customers
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

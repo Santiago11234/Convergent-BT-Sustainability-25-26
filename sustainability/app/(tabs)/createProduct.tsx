@@ -779,10 +779,10 @@ export default function CreatePostScreen() {
       {/* Header */}
       <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/marketplace')}>
             <Ionicons name="arrow-back" size={24} color="#374151" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-gray-900">Create Post</Text>
+          <Text className="text-xl font-bold text-gray-900">Create Sell Order</Text>
           <View className="w-6" />
         </View>
         {renderStepIndicator()}

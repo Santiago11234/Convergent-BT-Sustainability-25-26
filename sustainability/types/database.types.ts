@@ -27,7 +27,7 @@ export type GrowingMethod = 'organic' | 'conventional' | 'hydroponic' | 'aquapon
 
 export type DeliveryOption = 'pickup' | 'local_delivery' | 'shipping';
 
-export type PostType = 'blog' | 'short_video' | 'long_video';
+export type PostType = 'blog' | 'short_video' | 'long_video' | 'image' | 'video';
 
 export type PostStatus = 'draft' | 'published' | 'archived';
 
@@ -53,6 +53,8 @@ export interface User {
   seller_rating: number;
   review_count: number;
   is_verified_seller: boolean;
+  is_seller: boolean; // Whether user is primarily a seller
+  has_set_role: boolean; // Whether user has selected their role
   phone: string | null;
   follower_count: number;
   following_count: number;

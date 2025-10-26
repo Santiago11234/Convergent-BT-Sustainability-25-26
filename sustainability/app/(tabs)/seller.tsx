@@ -1,19 +1,54 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
+import { supabase } from '@/lib/supabase';
 
 export default function SellerScreen() {
   const { user } = useAuth();
-  const { products } = useMarketplace();
+  const { products, loadProducts } = useMarketplace();
   
   // Filter to only show products created by the current user
   const myProducts = products.filter(product => product.seller_id === user?.id);
 
+  const handleDeleteProduct = (productId: string) => {
+    Alert.alert(
+      'Delete Product',
+      'Are you sure you want to delete this product?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('products')
+                .delete()
+                .eq('id', productId);
+
+              if (error) {
+                Alert.alert('Error', 'Failed to delete product');
+                return;
+              }
+
+              // Reload products
+              if (loadProducts) {
+                await loadProducts();
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete product');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderProductCard = ({ item }: { item: typeof products[0] }) => (
-    <TouchableOpacity className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm">
+    <View className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm">
       <View className="flex-row">
         {/* Product Image */}
         <View className="w-20 h-20 rounded-xl bg-gray-100 mr-3">
@@ -52,10 +87,16 @@ export default function SellerScreen() {
               ${(item.price || 0).toFixed(2)}
               <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure || 'unit'}</Text>
             </Text>
+            <TouchableOpacity
+              onPress={() => handleDeleteProduct(item.id)}
+              className="ml-2"
+            >
+              <Ionicons name="trash-outline" size={24} color="#EF4444" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (

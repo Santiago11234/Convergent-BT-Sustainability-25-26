@@ -9,6 +9,7 @@ import '../global.css';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { MarketplaceProvider } from '@/contexts/MarketplaceContext';
+import { FeedProvider } from '@/contexts/FeedContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -34,10 +35,15 @@ function RootLayoutNav() {
   }, [user, loading, segments]);
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        animation: 'slide_from_right',
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="createPost" options={{ headerShown: false }} />
       <Stack.Screen name="messages/index" options={{ headerShown: false }} />
       <Stack.Screen name="messages/[conversationId]" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
@@ -52,10 +58,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <MarketplaceProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <RootLayoutNav />
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <FeedProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <RootLayoutNav />
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </FeedProvider>
         </MarketplaceProvider>
       </AuthProvider>
     </SafeAreaProvider>
