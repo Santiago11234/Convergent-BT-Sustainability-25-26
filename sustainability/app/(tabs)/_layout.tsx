@@ -25,14 +25,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="createPost"
+        name="feed"
         options={{
+          title: "Feed",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="createProduct"
+        options={{
+          title: "Sell",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add-circle" size={size} color={color} />
           ),
@@ -41,8 +52,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="marketplace"
         options={{
+          title: "Marketplace",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="storefront" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="seller"
+        options={{
+          title: "My Selling",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="briefcase" size={size} color={color} />
           ),
         }}
       />

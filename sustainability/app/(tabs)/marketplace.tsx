@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ProductCategory } from '@/types';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 const CATEGORIES: ('All' | ProductCategory)[] = ['All', 'vegetables', 'fruits', 'eggs', 'herbs', 'dairy', 'other'];
@@ -17,6 +18,7 @@ const formatCategoryName = (category: string): string => {
 export default function MarketplaceScreen() {
   const router = useRouter();
   const { products, loading } = useMarketplace();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'All' | ProductCategory>('All');
@@ -27,7 +29,8 @@ export default function MarketplaceScreen() {
 
   // Client-side filtering and sorting
   const filteredAndSortedProducts = useMemo(() => {
-    let filteredProducts = [...products];
+    // Filter out products created by the current user
+    let filteredProducts = products.filter(product => product.seller_id !== user?.id);
 
     // Filter by category
     if (selectedCategory !== 'All') {
@@ -64,7 +67,7 @@ export default function MarketplaceScreen() {
       default:
         return filteredProducts;
     }
-  }, [products, selectedCategory, priceRange, searchQuery, sortBy]);
+  }, [products, user, selectedCategory, priceRange, searchQuery, sortBy]);
 
   const renderListingCard = ({ item }: { item: typeof products[0] }) => (
     <TouchableOpacity
