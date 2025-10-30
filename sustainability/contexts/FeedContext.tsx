@@ -215,6 +215,17 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
+        console.error('Upload error details:', {
+          message: uploadError.message,
+          statusCode: uploadError.statusCode,
+          error: uploadError.error,
+        });
+        
+        // Provide helpful error message
+        if (uploadError.message?.includes('row-level security') || uploadError.message?.includes('RLS')) {
+          throw new Error('Storage permission error. Please ensure the storage bucket "posts" exists and RLS policies are configured. See database/setup_storage.sql');
+        }
+        
         throw uploadError;
       }
 
