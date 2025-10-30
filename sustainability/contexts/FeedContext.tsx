@@ -185,14 +185,30 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
       const fileName = `${user.id}/${Date.now()}.${fileExtension}`;
       const filePath = `post-images/${fileName}`;
 
-      // Read file as blob for React Native
-      const response = await fetch(localUri);
-      const blob = await response.blob();
+      // For React Native, we need to use XMLHttpRequest to load the file as ArrayBuffer
+      // since fetch().blob() is not available in React Native
+      const fileData = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', localUri);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve(xhr.response);
+          } else {
+            reject(new Error(`Failed to load file: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Failed to load file'));
+        xhr.send();
+      });
+
+      // Convert ArrayBuffer to Uint8Array for Supabase
+      const fileArray = new Uint8Array(fileData);
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('posts')
-        .upload(filePath, blob, {
+        .upload(filePath, fileArray, {
           contentType: `image/${fileExtension}`,
           upsert: false,
         });
