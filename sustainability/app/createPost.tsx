@@ -130,18 +130,31 @@ export default function CreatePostScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       {/* Header */}
       <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
-        <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity onPress={() => router.push('/(tabs)/feed')}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
-          </TouchableOpacity>
-          <Text className="text-xl font-bold text-gray-900">Create Post</Text>
-          <TouchableOpacity onPress={handleSubmit} disabled={submitting}>
-            {submitting ? (
-              <ActivityIndicator size="small" color="#22C55E" />
-            ) : (
-              <Text className="text-primary font-semibold text-base">Post</Text>
-            )}
-          </TouchableOpacity>
+        <View className="flex-row items-center mb-4">
+          <View className="flex-1">
+            <TouchableOpacity onPress={() => router.push('/(tabs)/feed')}>
+              <Ionicons name="arrow-back" size={24} color="#374151" />
+            </TouchableOpacity>
+          </View>
+          <View className="flex-1 items-center">
+            <Text className="text-xl font-bold text-gray-900">Create Post</Text>
+          </View>
+          <View className="flex-1 items-end">
+            <TouchableOpacity 
+              onPress={handleSubmit} 
+              disabled={submitting}
+              className="bg-primary px-4 py-2 rounded-xl flex-row items-center"
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Ionicons name="add-circle" size={20} color="white" />
+                  <Text className="text-white font-semibold ml-2">Post</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 

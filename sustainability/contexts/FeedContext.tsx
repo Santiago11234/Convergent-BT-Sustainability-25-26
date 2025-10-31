@@ -10,8 +10,11 @@ interface FeedContextType {
   likePost: (postId: string) => Promise<void>;
   unlikePost: (postId: string) => Promise<void>;
   getPostLikes: (postId: string) => Promise<string[]>; // Returns array of user IDs who liked
-  getPostComments: (postId: string) => Promise<Comment[]>;
-  addComment: (postId: string, text: string) => Promise<void>;
+  getPostComments: (postId: string) => Promise<Comment[]>; // Gets comments with replies
+  addComment: (postId: string, text: string, parentCommentId?: string) => Promise<void>;
+  likeComment: (commentId: string) => Promise<void>;
+  unlikeComment: (commentId: string) => Promise<void>;
+  getCommentLikes: (commentId: string) => Promise<string[]>; // Returns array of user IDs who liked
   uploadImage: (localUri: string) => Promise<string>; // Uploads image and returns public URL
 }
 
@@ -98,10 +101,28 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
       )
       .subscribe();
 
+    const commentLikesChannel = supabase
+      .channel('comment_likes_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comment_likes',
+        },
+        (payload) => {
+          console.log('Comment likes change received:', payload);
+          // Note: Components need to reload comment likes when this fires
+          // This will be handled in the feed component
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(postsChannel);
       supabase.removeChannel(likesChannel);
       supabase.removeChannel(commentsChannel);
+      supabase.removeChannel(commentLikesChannel);
     };
   }, []);
 
@@ -369,7 +390,8 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
 
   const getPostComments = async (postId: string): Promise<Comment[]> => {
     try {
-      const { data, error } = await supabase
+      // Get top-level comments
+      const { data: topLevelComments, error: topError } = await supabase
         .from('comments')
         .select(`
           *,
@@ -381,21 +403,52 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
           )
         `)
         .eq('post_id', postId)
-        .is('parent_comment_id', null) // Only top-level comments
+        .is('parent_comment_id', null)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        throw error;
+      if (topError) {
+        throw topError;
       }
 
-      return data || [];
+      if (!topLevelComments || topLevelComments.length === 0) {
+        return [];
+      }
+
+      // Get replies for each top-level comment
+      const commentIds = topLevelComments.map(c => c.id);
+      const { data: replies, error: repliesError } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          users!comments_user_id_fkey (
+            id,
+            name,
+            email,
+            profile_pic_url
+          )
+        `)
+        .eq('post_id', postId)
+        .in('parent_comment_id', commentIds)
+        .order('created_at', { ascending: true });
+
+      if (repliesError) {
+        console.error('Error getting replies:', repliesError);
+      }
+
+      // Attach replies to their parent comments
+      const commentsWithReplies = topLevelComments.map(comment => ({
+        ...comment,
+        replies: replies?.filter(reply => reply.parent_comment_id === comment.id) || [],
+      }));
+
+      return commentsWithReplies;
     } catch (error) {
       console.error('Error getting post comments:', error);
       return [];
     }
   };
 
-  const addComment = async (postId: string, text: string) => {
+  const addComment = async (postId: string, text: string, parentCommentId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -406,6 +459,7 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
         user_id: user.id,
         post_id: postId,
         text: text.trim(),
+        parent_comment_id: parentCommentId || null,
       });
 
       if (error) {
@@ -415,6 +469,71 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error adding comment:', error);
       throw error;
+    }
+  };
+
+  const likeComment = async (commentId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase.from('comment_likes').insert({
+        user_id: user.id,
+        comment_id: commentId,
+      });
+
+      if (error) {
+        if (error.code === '23505') {
+          console.log('Comment already liked');
+          return;
+        }
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      throw error;
+    }
+  };
+
+  const unlikeComment = async (commentId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase
+        .from('comment_likes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('comment_id', commentId);
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error unliking comment:', error);
+      throw error;
+    }
+  };
+
+  const getCommentLikes = async (commentId: string): Promise<string[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('comment_likes')
+        .select('user_id')
+        .eq('comment_id', commentId);
+
+      if (error) {
+        throw error;
+      }
+
+      return data?.map((like) => like.user_id) || [];
+    } catch (error) {
+      console.error('Error getting comment likes:', error);
+      return [];
     }
   };
 
@@ -434,6 +553,9 @@ export const FeedProvider = ({ children }: { children: ReactNode }) => {
         getPostLikes,
         getPostComments,
         addComment,
+        likeComment,
+        unlikeComment,
+        getCommentLikes,
         uploadImage,
       }}
     >
