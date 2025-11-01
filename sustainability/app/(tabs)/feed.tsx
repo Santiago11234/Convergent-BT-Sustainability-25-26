@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, Dimensions, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -171,6 +171,52 @@ export default function FeedScreen() {
     setReplyingTo(null);
   };
 
+  const handleShare = async (post: Post) => {
+    try {
+      const authorName = (post as any).users?.name || (post as any).users?.email?.split('@')[0] || 'Unknown User';
+      
+      // Build simple share message
+      let message = post.title.trim();
+      
+      if (post.description && post.description.trim()) {
+        // Remove any trailing ellipsis from description
+        let desc = post.description.trim();
+        if (desc.endsWith('...')) {
+          desc = desc.slice(0, -3).trim();
+        }
+        message += `\n${desc}`;
+      }
+      
+      if (post.post_type === 'blog' && post.content_markdown && post.content_markdown.trim()) {
+        message += `\n${post.content_markdown.trim()}`;
+      }
+      
+      if (post.tags && post.tags.length > 0) {
+        const tagsString = post.tags.map(tag => `#${tag}`).join(' ');
+        message += `\n${tagsString}`;
+      }
+      
+      message += `\nPosted by ${authorName}`;
+
+      const result = await Share.share({
+        message: message,
+        title: post.title,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared via:', result.activityType);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to share post');
+    }
+  };
+
   const handleLikeComment = async (commentId: string) => {
     if (!user || !selectedPost) return;
 
@@ -326,7 +372,12 @@ export default function FeedScreen() {
             <Text className="text-sm text-gray-600 ml-1">{item.comment_count || 0}</Text>
           </TouchableOpacity>
           
-          <Ionicons name="share-outline" size={24} color="#374151" style={{ marginLeft: 16 }} />
+          <TouchableOpacity
+            onPress={() => handleShare(item)}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="share-outline" size={24} color="#374151" />
+          </TouchableOpacity>
         </View>
 
         {/* Caption */}
