@@ -35,7 +35,7 @@ const POPULAR_TAGS = ['Fresh', 'Local', 'Seasonal', 'Farm-to-table', 'Sustainabl
 
 export default function CreatePostScreen() {
   const router = useRouter();
-  const { addProduct } = useMarketplace();
+  const { addProduct, uploadImage } = useMarketplace();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
@@ -162,6 +162,15 @@ export default function CreatePostScreen() {
     }
 
     try {
+      // Upload images to Supabase Storage
+      let imageUrls: string[] = [];
+      if (postData.images && postData.images.length > 0) {
+        // Show loading indicator (you might want to add a proper loading state UI here)
+        imageUrls = await Promise.all(
+          postData.images.map((uri) => uploadImage(uri))
+        );
+      }
+
       // Add the product to marketplace (now saves to Supabase)
       const productData: Omit<ProductInsert, 'seller_id'> = {
         title: postData.title,
@@ -178,7 +187,7 @@ export default function CreatePostScreen() {
         available_to: null,
         pickup_location: postData.location,
         delivery_options: ['pickup'],
-        images: postData.images,
+        images: imageUrls,
         // Add the new fields
         payment_methods: selectedPaymentMethods,
         other_payment_method: otherPaymentMethod,

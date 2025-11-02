@@ -36,6 +36,7 @@ interface MarketplaceContextType {
   newProductId: string | null;
   clearNewProductId: () => void;
   loading: boolean;
+  uploadImage: (localUri: string) => Promise<string>; // Uploads image and returns public URL
 }
 
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
@@ -217,8 +218,76 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
     setNewProductId(null);
   };
 
+  const uploadImage = async (localUri: string): Promise<string> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get file extension
+      const fileExtension = localUri.split('.').pop() || 'jpg';
+      const fileName = `${user.id}/${Date.now()}.${fileExtension}`;
+      const filePath = `product-images/${fileName}`;
+
+      // For React Native, we need to use XMLHttpRequest to load the file as ArrayBuffer
+      // since fetch().blob() is not available in React Native
+      const fileData = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', localUri);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve(xhr.response);
+          } else {
+            reject(new Error(`Failed to load file: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Failed to load file'));
+        xhr.send();
+      });
+
+      // Convert ArrayBuffer to Uint8Array for Supabase
+      const fileArray = new Uint8Array(fileData);
+
+      // Upload to Supabase Storage (using the same "posts" bucket)
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('posts')
+        .upload(filePath, fileArray, {
+          contentType: `image/${fileExtension}`,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        console.error('Upload error details:', {
+          message: uploadError.message,
+          statusCode: uploadError.statusCode,
+          error: uploadError.error,
+        });
+        
+        // Provide helpful error message
+        if (uploadError.message?.includes('row-level security') || uploadError.message?.includes('RLS')) {
+          throw new Error('Storage permission error. Please ensure the storage bucket "posts" exists and RLS policies are configured. See database/setup_storage.sql');
+        }
+        
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('posts')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
   return (
-    <MarketplaceContext.Provider value={{ products, addProduct, loadProducts, newProductId, clearNewProductId, loading }}>
+    <MarketplaceContext.Provider value={{ products, addProduct, loadProducts, newProductId, clearNewProductId, loading, uploadImage }}>
       {children}
     </MarketplaceContext.Provider>
   );
