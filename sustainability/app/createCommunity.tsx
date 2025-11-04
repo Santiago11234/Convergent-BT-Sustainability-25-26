@@ -121,9 +121,9 @@ export default function CreateCommunityScreen() {
 
       await createCommunity({
         name: name.trim(),
-        description: description.trim() || null,
-        category: category || null,
-        image_url: finalImageUrl,
+        description: description.trim() || undefined,
+        category: category || undefined,
+        image_url: finalImageUrl || undefined,
       });
 
       Alert.alert('Success', 'Community created successfully!', [
