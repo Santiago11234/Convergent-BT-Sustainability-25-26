@@ -17,6 +17,7 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
+  
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();

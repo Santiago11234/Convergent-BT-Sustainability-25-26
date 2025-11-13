@@ -25,7 +25,7 @@ export default function LoginScreen() {
         // Check if user has a role set in their profile
         const { data: profile } = await supabase
           .from('users')
-          .select('is_seller')
+          .select('is_seller, has_set_role')
           .eq('id', session.user.id)
           .single();
         

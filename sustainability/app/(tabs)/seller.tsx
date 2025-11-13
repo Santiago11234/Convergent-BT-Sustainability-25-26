@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
 import { supabase } from '@/lib/supabase';
+import GeminiWrapper from '@/components/GeminiWrapper';
+import { GEMINI_API_KEY, GEMINI_ENDPOINT } from '@env';
 
 export default function SellerScreen() {
   const { user } = useAuth();
   const { products, loadProducts } = useMarketplace();
+  const [activeTab, setActiveTab] = useState<'products' | 'assistant'>('products');
+
   
   // Filter to only show products created by the current user
   const myProducts = products.filter(product => product.seller_id === user?.id);
@@ -107,6 +111,26 @@ export default function SellerScreen() {
         <Text className="text-sm text-gray-600">Manage your products and track your sales</Text>
       </View>
 
+      {/* Tab Navigation */}
+      <View className="flex-row bg-white border-b border-gray-100">
+        <TouchableOpacity 
+          onPress={() => setActiveTab('products')}
+          className={`flex-1 py-3 ${activeTab === 'products' ? 'border-b-2 border-primary' : ''}`}
+        >
+          <Text className={`text-center font-semibold ${activeTab === 'products' ? 'text-primary' : 'text-gray-600'}`}>
+            Products
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={() => setActiveTab('assistant')}
+          className={`flex-1 py-3 ${activeTab === 'assistant' ? 'border-b-2 border-primary' : ''}`}
+        >
+          <Text className={`text-center font-semibold ${activeTab === 'assistant' ? 'text-primary' : 'text-gray-600'}`}>
+            AI Assistant
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Stats Section */}
       <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
         <Text className="text-lg font-bold text-gray-900 mb-3">Stats</Text>
@@ -126,26 +150,34 @@ export default function SellerScreen() {
         </View>
       </View>
 
-      {/* Products List */}
-      <View className="flex-1 px-4 pt-4">
-        <Text className="text-lg font-bold text-gray-900 mb-3">My Products</Text>
-        
-        {myProducts.length === 0 ? (
-          <View className="items-center justify-center py-20">
-            <Ionicons name="cube-outline" size={64} color="#D1D5DB" />
-            <Text className="text-lg font-semibold text-gray-400 mt-4">No products yet</Text>
-            <Text className="text-sm text-gray-400 mt-1">Start selling by creating a new product</Text>
+      {activeTab === 'products' ? (
+        <>
+          {/* Products List */}
+          <View className="flex-1 px-4 pt-4">
+            <Text className="text-lg font-bold text-gray-900 mb-3">My Products</Text>
+            
+            {myProducts.length === 0 ? (
+              <View className="items-center justify-center py-20">
+                <Ionicons name="cube-outline" size={64} color="#D1D5DB" />
+                <Text className="text-lg font-semibold text-gray-400 mt-4">No products yet</Text>
+                <Text className="text-sm text-gray-400 mt-1">Start selling by creating a new product</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={myProducts}
+                renderItem={renderProductCard}
+                keyExtractor={item => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+            )}
           </View>
-        ) : (
-          <FlatList
-            data={myProducts}
-            renderItem={renderProductCard}
-            keyExtractor={item => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
-        )}
-      </View>
+        </>
+      ) : (
+        <View className="flex-1 bg-white">
+          <GeminiWrapper endpoint={GEMINI_ENDPOINT} apiKey={GEMINI_API_KEY} />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
