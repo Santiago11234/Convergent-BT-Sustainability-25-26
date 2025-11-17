@@ -425,6 +425,7 @@ export default function CommunityScreen() {
                     key={conversation.id}
                     className="flex-row items-center py-3 border-b border-gray-100"
                     activeOpacity={0.7}
+                    onPress={() => router.push(`/messages/${conversation.id}`)}
                   >
                     {/* Avatar */}
                     <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-3">
