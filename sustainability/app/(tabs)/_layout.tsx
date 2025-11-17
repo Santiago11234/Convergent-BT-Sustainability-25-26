@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -22,7 +23,21 @@ export default function TabLayout() {
           fontWeight: '600',
         },
       }}>
-      {/* Feed - First Tab (Default Landing) */}
+      {/* Home - First Tab */}
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: "",
+          tabBarIcon: ({ color, size }) => (
+            <Image
+              source={require('@/assets/logos/logo.png')}
+              style={{ width: size, height: size, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      {/* Feed - Second Tab */}
       <Tabs.Screen
         name="feed"
         options={{

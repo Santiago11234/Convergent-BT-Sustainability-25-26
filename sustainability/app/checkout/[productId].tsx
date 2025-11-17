@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Image, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useStripe } from '@stripe/stripe-react-native';
+// import { useStripe } from '@stripe/stripe-react-native'; // Commented out - Stripe to be implemented later
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProductWithSeller } from '@/types/database.types';
@@ -12,11 +12,13 @@ export default function CheckoutScreen() {
   const { productId } = useLocalSearchParams<{ productId: string }>();
   const router = useRouter();
   const { user } = useAuth();
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  // const { initPaymentSheet, presentPaymentSheet } = useStripe(); // Commented out - Stripe to be implemented later
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState<ProductWithSeller | null>(null);
   const [fetchingProduct, setFetchingProduct] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     fetchProduct();
@@ -54,6 +56,7 @@ export default function CheckoutScreen() {
   const handlePayment = async () => {
     if (!user || !product) return;
 
+    /* STRIPE INTEGRATION - TO BE IMPLEMENTED LATER
     // Check if seller has completed Stripe onboarding
     if (!product.seller.stripe_account_id || !product.seller.stripe_onboarding_complete) {
       Alert.alert(
@@ -143,6 +146,23 @@ export default function CheckoutScreen() {
     } finally {
       setLoading(false);
     }
+    END OF STRIPE INTEGRATION */
+
+    // TEMPORARY: Simulate payment processing with animation
+    setLoading(true);
+
+    // Simulate loading for 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    setLoading(false);
+    setShowSuccess(true);
+
+    // Fade in animation
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
   };
 
   if (fetchingProduct) {
@@ -361,6 +381,72 @@ export default function CheckoutScreen() {
           By completing this purchase, you agree to our Terms of Service
         </Text>
       </View>
+
+      {/* Success Modal */}
+      {showSuccess && (
+        <Animated.View
+          style={{ opacity: fadeAnim }}
+          className="absolute inset-0 bg-black/50 items-center justify-center"
+        >
+          <View className="bg-white rounded-3xl p-8 mx-6 items-center shadow-2xl">
+            {/* Success Icon */}
+            <View className="bg-green-100 rounded-full p-6 mb-6">
+              <Ionicons name="checkmark-circle" size={80} color="#22C55E" />
+            </View>
+
+            {/* Success Message */}
+            <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              Successful Transaction!
+            </Text>
+
+            <Text className="text-base text-gray-600 text-center mb-6">
+              Your order has been confirmed
+            </Text>
+
+            {/* Pickup Details */}
+            <View className="bg-blue-50 rounded-2xl p-6 w-full mb-6">
+              <Text className="text-base font-bold text-blue-900 mb-4">
+                Remember to pickup at:
+              </Text>
+
+              <View className="flex-row items-start">
+                <Ionicons name="location" size={24} color="#3B82F6" className="mt-1" />
+                <View className="flex-1 ml-3">
+                  
+                  <Text className="text-base text-blue-800">
+                    {product?.pickup_location || product?.seller?.address || 'Contact seller for pickup details'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <TouchableOpacity
+              onPress={() => {
+                setShowSuccess(false);
+                router.back();
+              }}
+              className="bg-primary px-8 py-5 rounded-xl w-full items-center mb-3"
+            >
+              <Text className="text-white font-bold text-lg">
+                Continue Shopping
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setShowSuccess(false);
+                router.replace('/(tabs)/profile');
+              }}
+              className="bg-gray-100 px-8 py-5 rounded-xl w-full items-center"
+            >
+              <Text className="text-gray-700 font-semibold text-lg">
+                View My Orders
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }

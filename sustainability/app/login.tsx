@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Modal, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
@@ -96,7 +96,11 @@ export default function LoginScreen() {
       <View className="flex-1 items-center justify-center px-6">
         {/* Logo */}
         <View className="w-32 h-32 rounded-3xl bg-green-100 items-center justify-center shadow-lg shadow-green-500/30 mb-8">
-          <Ionicons name="leaf" size={64} color="#22C55E" />
+          <Image
+            source={require('@/assets/logos/logo.png')}
+            style={{ width: 64, height: 64 }}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Title */}
