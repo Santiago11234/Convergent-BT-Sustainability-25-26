@@ -8,6 +8,12 @@
 // ============================================================================
 
 export type ProductStatus = 'active' | 'sold_out' | 'archived';
+export type ProductVerificationStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'manual_review'
+  | 'failed';
 
 export type ProductCategory =
   | 'vegetables'
@@ -94,6 +100,13 @@ export interface Product {
   is_residential: boolean;
   latitude: number | null;
   longitude: number | null;
+  verification_status: ProductVerificationStatus | null;
+  verification_confidence: number | null;
+  verification_ripeness_score: number | null;
+  verification_notes: string[] | null;
+  verification_metadata: Record<string, any> | null;
+  verification_requested_at: string | null;
+  verification_completed_at: string | null;
 }
 
 export interface Post {

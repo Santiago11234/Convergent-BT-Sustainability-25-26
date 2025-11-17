@@ -1,8 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Product, ProductInsert, ProductWithSeller } from '@/types';
+import { Product, ProductInsert, ProductWithSeller, ProductVerificationStatus } from '@/types';
 import { User } from '@/types';
 import { calculateDistance, DEFAULT_LOCATION } from '@/utils/distance';
+
+export interface VerificationImageInput {
+  angle: string;
+  uri: string;
+}
+
+export interface VerificationResult {
+  status: ProductVerificationStatus;
+  confidence: number;
+  ripenessScore: number;
+  matchedProduct: string | null;
+  notes: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface VerificationVideoInput {
+  uri: string;
+  durationMs?: number | null;
+}
 
 export interface MarketplacePost {
   id: string;
@@ -36,7 +55,16 @@ interface MarketplaceContextType {
   newProductId: string | null;
   clearNewProductId: () => void;
   loading: boolean;
-  uploadImage: (localUri: string) => Promise<string>; // Uploads image and returns public URL
+  uploadImage: (localUri: string, options?: { folder?: string }) => Promise<string>;
+  verifyProduce: (params: {
+    productTitle: string;
+    category?: string;
+    productId?: string;
+    images: VerificationImageInput[];
+    video?: VerificationVideoInput | null;
+    captureMethod?: 'guided_video' | 'manual_photos';
+  }) => Promise<VerificationResult>;
+  classifyFreshStale: (imageUri: string) => Promise<{ isFresh: boolean; confidence: number }>;
 }
 
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
@@ -143,6 +171,13 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
         is_residential: productData.is_residential !== undefined ? productData.is_residential : true,
         latitude: productData.latitude || null,
         longitude: productData.longitude || null,
+        verification_status: productData.verification_status || 'manual_review',
+        verification_confidence: productData.verification_confidence ?? null,
+        verification_ripeness_score: productData.verification_ripeness_score ?? null,
+        verification_notes: productData.verification_notes || null,
+        verification_metadata: productData.verification_metadata || null,
+        verification_requested_at: productData.verification_requested_at || new Date().toISOString(),
+        verification_completed_at: productData.verification_completed_at || null,
       };
 
       console.log('Attempting to insert product:', productInsert);
@@ -218,7 +253,24 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
     setNewProductId(null);
   };
 
-  const uploadImage = async (localUri: string): Promise<string> => {
+  const loadUriAsUint8Array = async (localUri: string): Promise<Uint8Array> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', localUri);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = () => {
+        if (xhr.status === 200 || xhr.status === 0) {
+          resolve(new Uint8Array(xhr.response));
+        } else {
+          reject(new Error(`Failed to load file: status ${xhr.status}`));
+        }
+      };
+      xhr.onerror = () => reject(new Error('Failed to load file'));
+      xhr.send();
+    });
+  };
+
+  const uploadImage = async (localUri: string, options?: { folder?: string }): Promise<string> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -228,27 +280,12 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
       // Get file extension
       const fileExtension = localUri.split('.').pop() || 'jpg';
       const fileName = `${user.id}/${Date.now()}.${fileExtension}`;
-      const filePath = `product-images/${fileName}`;
+      const folder = options?.folder ? options.folder.replace(/\/+$/g, '') : 'product-images';
+      const filePath = `${folder}/${fileName}`;
 
       // For React Native, we need to use XMLHttpRequest to load the file as ArrayBuffer
       // since fetch().blob() is not available in React Native
-      const fileData = await new Promise<ArrayBuffer>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', localUri);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = () => {
-          if (xhr.status === 200) {
-            resolve(xhr.response);
-          } else {
-            reject(new Error(`Failed to load file: ${xhr.status}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Failed to load file'));
-        xhr.send();
-      });
-
-      // Convert ArrayBuffer to Uint8Array for Supabase
-      const fileArray = new Uint8Array(fileData);
+      const fileArray = await loadUriAsUint8Array(localUri);
 
       // Upload to Supabase Storage (using the same "posts" bucket)
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -260,11 +297,7 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
-        console.error('Upload error details:', {
-          message: uploadError.message,
-          statusCode: uploadError.statusCode,
-          error: uploadError.error,
-        });
+        console.error('Upload error message:', uploadError.message);
         
         // Provide helpful error message
         if (uploadError.message?.includes('row-level security') || uploadError.message?.includes('RLS')) {
@@ -286,8 +319,183 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const uploadVideo = async (
+    localUri: string,
+    options?: { folder?: string; defaultExtension?: string; contentType?: string },
+  ): Promise<{ publicUrl: string; storagePath: string }> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const resolveExtension = (uri: string, fallback: string) => {
+        const sanitized = uri.split('?')[0]?.split('#')[0] ?? '';
+        const ext = sanitized.split('.').pop();
+        return ext ? ext.toLowerCase() : fallback;
+      };
+
+      const extension = resolveExtension(localUri, options?.defaultExtension ?? 'mp4');
+      const folder = options?.folder ? options.folder.replace(/\/+$/g, '') : 'product-verification/videos';
+      const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${extension}`;
+      const filePath = `${folder}/${fileName}`;
+
+      const mimeType = (() => {
+        if (options?.contentType) return options.contentType;
+        switch (extension) {
+          case 'mov':
+            return 'video/quicktime';
+          case 'mp4':
+            return 'video/mp4';
+          case 'm4v':
+            return 'video/x-m4v';
+          case 'webm':
+            return 'video/webm';
+          default:
+            return 'video/mp4';
+        }
+      })();
+
+      const fileArray = await loadUriAsUint8Array(localUri);
+
+      const { error: uploadError } = await supabase.storage
+        .from('posts')
+        .upload(filePath, fileArray, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Upload video error:', uploadError);
+        throw uploadError;
+      }
+
+      const { data: urlData } = supabase.storage.from('posts').getPublicUrl(filePath);
+
+      return { publicUrl: urlData.publicUrl, storagePath: filePath };
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    }
+  };
+
+  const classifyFreshStale = async (imageUri: string): Promise<{ isFresh: boolean; confidence: number }> => {
+    try {
+      // Upload image first
+      const imageUrl = await uploadImage(imageUri, { folder: 'freshness-check' });
+      console.log('Image uploaded, URL:', imageUrl);
+
+      // Call the fresh/stale classification API
+      const { data, error } = await supabase.functions.invoke('classify-fresh-stale', {
+        body: {
+          imageUrl,
+        },
+      });
+
+      console.log('Edge Function response:', { data, error });
+
+      if (error) {
+        console.error('Classification error:', error);
+        throw new Error(error.message || 'Failed to classify produce freshness');
+      }
+
+      if (!data) {
+        throw new Error('No classification data returned');
+      }
+
+      // Check if response has error field (from Edge Function error response)
+      if (data.error) {
+        console.error('Edge Function returned error:', data);
+        throw new Error(data.details || data.error || 'Classification failed');
+      }
+
+      return {
+        isFresh: data.isFresh ?? false,
+        confidence: typeof data.confidence === 'number' ? data.confidence : 0,
+      };
+    } catch (err) {
+      console.error('Error classifying fresh/stale:', err);
+      throw err;
+    }
+  };
+
+  const verifyProduce = async (params: {
+    productTitle: string;
+    category?: string;
+    productId?: string;
+    images: VerificationImageInput[];
+    video?: VerificationVideoInput | null;
+    captureMethod?: 'guided_video' | 'manual_photos';
+  }): Promise<VerificationResult> => {
+    const { productTitle, category, images, productId } = params;
+
+    if (!images || images.length === 0) {
+      throw new Error('Please capture images of the product before verification.');
+    }
+
+    try {
+      const uploadedImages = await Promise.all(
+        images.map(async (image) => {
+          const publicUrl = await uploadImage(image.uri, { folder: 'product-verification' });
+          return { angle: image.angle, url: publicUrl };
+        }),
+      );
+
+      let uploadedVideo: { url: string; durationMs?: number | null; storagePath: string } | null = null;
+
+      if (params.video?.uri) {
+        const videoUpload = await uploadVideo(params.video.uri, { folder: 'product-verification/videos' });
+        uploadedVideo = {
+          url: videoUpload.publicUrl,
+          storagePath: videoUpload.storagePath,
+          durationMs: params.video.durationMs ?? null,
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('verify-produce', {
+        body: {
+          productId: productId ?? null,
+          claimedName: productTitle,
+          claimedCategory: category ?? null,
+          images: uploadedImages,
+          video: uploadedVideo
+            ? {
+                url: uploadedVideo.url,
+                storagePath: uploadedVideo.storagePath,
+                durationMs: uploadedVideo.durationMs,
+              }
+            : null,
+          captureMethod: params.captureMethod ?? (uploadedVideo ? 'guided_video' : 'manual_photos'),
+        },
+      });
+
+      if (error) {
+        console.error('Verification error:', error);
+        throw new Error(error.message || 'Failed to verify produce');
+      }
+
+      if (!data) {
+        throw new Error('No verification data returned');
+      }
+
+      const mappedStatus = (data.status ?? 'manual_review') as ProductVerificationStatus;
+
+      return {
+        status: mappedStatus,
+        confidence: typeof data.confidence === 'number' ? data.confidence : 0,
+        ripenessScore: typeof data.ripenessScore === 'number' ? data.ripenessScore : 0,
+        matchedProduct: data.matchedProduct ?? null,
+        notes: Array.isArray(data.notes) ? data.notes : [],
+        metadata: data.metadata ?? undefined,
+      };
+    } catch (err) {
+      console.error('Error running produce verification:', err);
+      throw err;
+    }
+  };
+
   return (
-    <MarketplaceContext.Provider value={{ products, addProduct, loadProducts, newProductId, clearNewProductId, loading, uploadImage }}>
+    <MarketplaceContext.Provider value={{ products, addProduct, loadProducts, newProductId, clearNewProductId, loading, uploadImage, verifyProduce, classifyFreshStale }}>
       {children}
     </MarketplaceContext.Provider>
   );
