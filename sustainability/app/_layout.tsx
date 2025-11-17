@@ -17,7 +17,6 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
-  
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -28,10 +27,8 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === 'login';
 
     if (!user && !inAuthGroup) {
-      // Redirect to login if not authenticated
       router.replace('/login');
     } else if (user && inAuthGroup) {
-      // Redirect to home if authenticated
       router.replace('/(tabs)');
     }
   }, [user, loading, segments]);
@@ -45,6 +42,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="checkout/[productId]" options={{ headerShown: false }} />
       <Stack.Screen name="community/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="createPost" options={{ headerShown: false }} />
       <Stack.Screen name="createCommunity" options={{ headerShown: false }} />

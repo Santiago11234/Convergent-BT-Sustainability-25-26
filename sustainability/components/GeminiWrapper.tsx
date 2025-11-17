@@ -37,7 +37,7 @@ export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-00
 
     try {
       // Build endpoint URL with API key as query parameter (Google Generative API requirement)
-      let url = endpoint || `https://generativeai.googleapis.com/v1/models/${model}:generateContent`;
+      let url = endpoint || `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent`;
       if (apiKey) {
         const separator = url.includes('?') ? '&' : '?';
         url = `${url}${separator}key=${encodeURIComponent(apiKey)}`;

@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
 import { supabase } from '@/lib/supabase';
 import GeminiWrapper from '@/components/GeminiWrapper';
-import { GEMINI_API_KEY, GEMINI_ENDPOINT } from '@env';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+const GEMINI_ENDPOINT = process.env.EXPO_PUBLIC_GEMINI_ENDPOINT || '';
 
 export default function SellerScreen() {
   const { user } = useAuth();
@@ -131,27 +132,26 @@ export default function SellerScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Stats Section */}
-      <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
-        <Text className="text-lg font-bold text-gray-900 mb-3">Stats</Text>
-        <View className="flex-row justify-between">
-          <View className="flex-1 items-center">
-            <Text className="text-2xl font-bold text-primary">{myProducts.length}</Text>
-            <Text className="text-sm text-gray-600">Active Products</Text>
-          </View>
-          <View className="flex-1 items-center border-l border-gray-200">
-            <Text className="text-2xl font-bold text-green-600">$0</Text>
-            <Text className="text-sm text-gray-600">Total Sales</Text>
-          </View>
-          <View className="flex-1 items-center border-l border-gray-200">
-            <Text className="text-2xl font-bold text-blue-600">{myProducts.reduce((sum, p) => sum + (p.quantity_available || 0), 0)}</Text>
-            <Text className="text-sm text-gray-600">Total Stock</Text>
-          </View>
-        </View>
-      </View>
-
       {activeTab === 'products' ? (
         <>
+          {/* Stats Section */}
+          <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
+            <Text className="text-lg font-bold text-gray-900 mb-3">Stats</Text>
+            <View className="flex-row justify-between">
+              <View className="flex-1 items-center">
+                <Text className="text-2xl font-bold text-primary">{myProducts.length}</Text>
+                <Text className="text-sm text-gray-600">Active Products</Text>
+              </View>
+              <View className="flex-1 items-center border-l border-gray-200">
+                <Text className="text-2xl font-bold text-green-600">$0</Text>
+                <Text className="text-sm text-gray-600">Total Sales</Text>
+              </View>
+              <View className="flex-1 items-center border-l border-gray-200">
+                <Text className="text-2xl font-bold text-blue-600">{myProducts.reduce((sum, p) => sum + (p.quantity_available || 0), 0)}</Text>
+                <Text className="text-sm text-gray-600">Total Stock</Text>
+              </View>
+            </View>
+          </View>
           {/* Products List */}
           <View className="flex-1 px-4 pt-4">
             <Text className="text-lg font-bold text-gray-900 mb-3">My Products</Text>

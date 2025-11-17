@@ -371,7 +371,10 @@ export default function ProductDetailsScreen() {
           <TouchableOpacity className="bg-gray-100 p-3 rounded-xl">
             <Ionicons name="heart-outline" size={24} color="#1F2937" />
           </TouchableOpacity>
-          <TouchableOpacity className="flex-1 bg-primary py-4 rounded-xl items-center">
+          <TouchableOpacity 
+            className="flex-1 bg-primary py-4 rounded-xl items-center"
+            onPress={() => router.push(`/checkout/${product.id}`)}
+          >
             <Text className="text-white font-bold text-lg">Buy Now</Text>
           </TouchableOpacity>
           <TouchableOpacity
