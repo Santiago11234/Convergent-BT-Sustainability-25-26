@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,13 +19,23 @@ interface GeminiWrapperProps {
   apiKey?: string; // API key or Bearer token
   endpoint?: string; // full URL for the Gemini/generative API endpoint
   model?: string; // optional model identifier
+  initialMessage?: string; // initial message to display from assistant
 }
 
-export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-001' }: GeminiWrapperProps) {
+export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-001', initialMessage }: GeminiWrapperProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const hasInitialized = useRef(false);
+
+  // Add initial message when component mounts
+  useEffect(() => {
+    if (initialMessage && !hasInitialized.current && messages.length === 0) {
+      setMessages([{ role: 'assistant', content: initialMessage }]);
+      hasInitialized.current = true;
+    }
+  }, [initialMessage, messages.length]);
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;

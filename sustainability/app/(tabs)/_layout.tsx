@@ -57,17 +57,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* My Selling - Third Tab */}
-      <Tabs.Screen
-        name="seller"
-        options={{
-          title: "",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="briefcase" size={size} color={color} />
-          ),
-        }}
-      />
-      {/* Community - Fourth Tab */}
+      {/* Community - Third Tab */}
       <Tabs.Screen
         name="community"
         options={{
@@ -87,7 +77,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* Hide index redirect and createProduct from tabs */}
+      {/* Hide index redirect, createProduct, and seller from tabs */}
       <Tabs.Screen
         name="index"
         options={{
@@ -96,6 +86,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="createProduct"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="seller"
         options={{
           href: null,
         }}
