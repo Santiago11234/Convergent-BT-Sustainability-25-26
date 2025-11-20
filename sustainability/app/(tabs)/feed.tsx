@@ -171,6 +171,22 @@ export default function FeedScreen() {
     setReplyingTo(null);
   };
 
+  const goToProfile = (targetUserId?: string | null) => {
+    if (!targetUserId) return;
+
+    if (commentModalVisible) {
+      setCommentModalVisible(false);
+      setSelectedPost(null);
+      setReplyingTo(null);
+    }
+
+    if (user?.id === targetUserId) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${targetUserId}`);
+    }
+  };
+
   const handleShare = async (post: Post) => {
     try {
       const authorName = (post as any).users?.name || (post as any).users?.email?.split('@')[0] || 'Unknown User';
@@ -303,24 +319,30 @@ export default function FeedScreen() {
       <View className="bg-white border-b border-gray-200 pb-4 mb-4">
         {/* User Header */}
         <View className="flex-row items-center px-4 py-3">
-          <View className="w-10 h-10 rounded-full bg-gray-200 mr-3 items-center justify-center overflow-hidden">
-            {(item as any).users?.profile_pic_url ? (
-              <Image
-                source={{ uri: (item as any).users.profile_pic_url }}
-                className="w-full h-full rounded-full"
-              />
-            ) : (
-              <Ionicons name="person" size={24} color="#9CA3AF" />
-            )}
-          </View>
-          <View className="flex-1">
-            <Text className="font-semibold text-gray-900">
-              {(item as any).users?.name || (item as any).users?.email?.split('@')[0] || 'Unknown User'}
-            </Text>
-            <Text className="text-xs text-gray-500">
-              {getRelativeTime(item.created_at)}
-            </Text>
-          </View>
+          <TouchableOpacity
+            className="flex-row items-center flex-1"
+            activeOpacity={0.8}
+            onPress={() => goToProfile((item as any).users?.id || item.author_id)}
+          >
+            <View className="w-10 h-10 rounded-full bg-gray-200 mr-3 items-center justify-center overflow-hidden">
+              {(item as any).users?.profile_pic_url ? (
+                <Image
+                  source={{ uri: (item as any).users.profile_pic_url }}
+                  className="w-full h-full rounded-full"
+                />
+              ) : (
+                <Ionicons name="person" size={24} color="#9CA3AF" />
+              )}
+            </View>
+            <View className="flex-1">
+              <Text className="font-semibold text-gray-900">
+                {(item as any).users?.name || (item as any).users?.email?.split('@')[0] || 'Unknown User'}
+              </Text>
+              <Text className="text-xs text-gray-500">
+                {getRelativeTime(item.created_at)}
+              </Text>
+            </View>
+          </TouchableOpacity>
           <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
         </View>
 
@@ -499,21 +521,31 @@ export default function FeedScreen() {
                           <View key={comment.id} className="mb-4 pb-4 border-b border-gray-100">
                             {/* Main Comment */}
                             <View className="flex-row">
-                              <View className="w-8 h-8 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
-                                {(comment as any).users?.profile_pic_url ? (
-                                  <Image
-                                    source={{ uri: (comment as any).users.profile_pic_url }}
-                                    className="w-full h-full rounded-full"
-                                  />
-                                ) : (
-                                  <Ionicons name="person" size={16} color="#9CA3AF" />
-                                )}
-                              </View>
+                              <TouchableOpacity
+                                onPress={() => goToProfile((comment as any).users?.id)}
+                                activeOpacity={0.8}
+                              >
+                                <View className="w-8 h-8 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
+                                  {(comment as any).users?.profile_pic_url ? (
+                                    <Image
+                                      source={{ uri: (comment as any).users.profile_pic_url }}
+                                      className="w-full h-full rounded-full"
+                                    />
+                                  ) : (
+                                    <Ionicons name="person" size={16} color="#9CA3AF" />
+                                  )}
+                                </View>
+                              </TouchableOpacity>
                               <View className="flex-1">
                                 <View className="flex-row items-center mb-1">
-                                  <Text className="font-semibold text-gray-900 text-sm mr-2">
-                                    {(comment as any).users?.name || (comment as any).users?.email?.split('@')[0] || 'Unknown'}
-                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={() => goToProfile((comment as any).users?.id)}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Text className="font-semibold text-gray-900 text-sm mr-2">
+                                      {(comment as any).users?.name || (comment as any).users?.email?.split('@')[0] || 'Unknown'}
+                                    </Text>
+                                  </TouchableOpacity>
                                   <Text className="text-xs text-gray-500">
                                     {getRelativeTime(comment.created_at)}
                                   </Text>
@@ -553,19 +585,25 @@ export default function FeedScreen() {
                                       return (
                                         <View key={reply.id} className="mb-3">
                                           <View className="flex-row items-center mb-1">
-                                            <View className="w-6 h-6 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
-                                              {(reply as any).users?.profile_pic_url ? (
-                                                <Image
-                                                  source={{ uri: (reply as any).users.profile_pic_url }}
-                                                  className="w-full h-full rounded-full"
-                                                />
-                                              ) : (
-                                                <Ionicons name="person" size={12} color="#9CA3AF" />
-                                              )}
-                                            </View>
-                                            <Text className="font-semibold text-gray-900 text-xs mr-2">
-                                              {(reply as any).users?.name || (reply as any).users?.email?.split('@')[0] || 'Unknown'}
-                                            </Text>
+                                            <TouchableOpacity
+                                              onPress={() => goToProfile((reply as any).users?.id)}
+                                              activeOpacity={0.7}
+                                              className="flex-row items-center mr-2"
+                                            >
+                                              <View className="w-6 h-6 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
+                                                {(reply as any).users?.profile_pic_url ? (
+                                                  <Image
+                                                    source={{ uri: (reply as any).users.profile_pic_url }}
+                                                    className="w-full h-full rounded-full"
+                                                  />
+                                                ) : (
+                                                  <Ionicons name="person" size={12} color="#9CA3AF" />
+                                                )}
+                                              </View>
+                                              <Text className="font-semibold text-gray-900 text-xs">
+                                                {(reply as any).users?.name || (reply as any).users?.email?.split('@')[0] || 'Unknown'}
+                                              </Text>
+                                            </TouchableOpacity>
                                             <Text className="text-xs text-gray-500">
                                               {getRelativeTime(reply.created_at)}
                                             </Text>

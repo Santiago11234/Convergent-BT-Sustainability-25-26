@@ -105,35 +105,47 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
 
-          {otherUser.profile_pic_url ? (
-            <Image
-              source={{ uri: otherUser.profile_pic_url }}
-              className="w-10 h-10 rounded-full mr-3"
-            />
-          ) : (
-            <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
-              <Text className="text-white text-lg font-bold">
-                {otherUser.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
-
-          <View className="flex-1">
-            <View className="flex-row items-center">
-              <Text className="text-lg font-bold text-gray-900">{otherUser.name}</Text>
-              {otherUser.is_verified_seller && (
-                <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
-              )}
-            </View>
-            {otherUser.seller_rating > 0 && (
-              <View className="flex-row items-center">
-                <Ionicons name="star" size={12} color="#F59E0B" />
-                <Text className="text-xs text-gray-500 ml-1">
-                  {otherUser.seller_rating.toFixed(1)} ({otherUser.review_count} reviews)
+          <TouchableOpacity
+            className="flex-row items-center flex-1"
+            activeOpacity={0.8}
+            onPress={() => {
+              if (user?.id === otherUser.id) {
+                router.push('/(tabs)/profile');
+              } else {
+                router.push(`/profile/${otherUser.id}`);
+              }
+            }}
+          >
+            {otherUser.profile_pic_url ? (
+              <Image
+                source={{ uri: otherUser.profile_pic_url }}
+                className="w-10 h-10 rounded-full mr-3"
+              />
+            ) : (
+              <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
+                <Text className="text-white text-lg font-bold">
+                  {otherUser.name.charAt(0).toUpperCase()}
                 </Text>
               </View>
             )}
-          </View>
+
+            <View className="flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-lg font-bold text-gray-900">{otherUser.name}</Text>
+                {otherUser.is_verified_seller && (
+                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              {otherUser.seller_rating > 0 && (
+                <View className="flex-row items-center">
+                  <Ionicons name="star" size={12} color="#F59E0B" />
+                  <Text className="text-xs text-gray-500 ml-1">
+                    {otherUser.seller_rating.toFixed(1)} ({otherUser.review_count} reviews)
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
 
           <TouchableOpacity className="p-2 -mr-2">
             <Ionicons name="ellipsis-vertical" size={24} color="#1F2937" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, ScrollView, Image, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, ScrollView, Image, TextInput, GestureResponderEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -118,6 +118,16 @@ export default function CommunityScreen() {
         },
       ]
     );
+  };
+
+  const handleProfilePress = (targetUserId?: string | null, event?: GestureResponderEvent) => {
+    event?.stopPropagation?.();
+    if (!targetUserId) return;
+    if (user?.id === targetUserId) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${targetUserId}`);
+    }
   };
 
   const renderCommunityCard = ({ item }: { item: Community }) => {
@@ -428,7 +438,11 @@ export default function CommunityScreen() {
                     onPress={() => router.push(`/messages/${conversation.id}`)}
                   >
                     {/* Avatar */}
-                    <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-3">
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-3 overflow-hidden"
+                      onPress={(event) => handleProfilePress(otherParticipant.id, event)}
+                    >
                       {otherParticipant.profile_pic_url ? (
                         <Image
                           source={{ uri: otherParticipant.profile_pic_url }}
@@ -440,24 +454,33 @@ export default function CommunityScreen() {
                           {otherParticipant.name?.charAt(0).toUpperCase() || '?'}
                         </Text>
                       )}
-                    </View>
+                    </TouchableOpacity>
 
                     {/* Message Info */}
                     <View className="flex-1">
-                      <Text className="text-base font-semibold text-gray-900">
-                        {otherParticipant.name}
-                      </Text>
+                      <View className="flex-row items-center justify-between mb-1">
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          className="flex-row items-center flex-1"
+                          onPress={(event) => handleProfilePress(otherParticipant.id, event)}
+                        >
+                          <Text className="text-base font-semibold text-gray-900">
+                            {otherParticipant.name}
+                          </Text>
+                          {otherParticipant.is_verified_seller && (
+                            <Ionicons name="checkmark-circle" size={14} color="#22C55E" style={{ marginLeft: 4 }} />
+                          )}
+                        </TouchableOpacity>
+                        {conversation.last_message_at && (
+                          <Text className="text-xs text-gray-400">
+                            {new Date(conversation.last_message_at).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </View>
                       <Text className="text-sm text-gray-500 mt-0.5" numberOfLines={1}>
                         {conversation.last_message?.text || 'No messages yet'}
                       </Text>
                     </View>
-
-                    {/* Time */}
-                    {conversation.last_message_at && (
-                      <Text className="text-xs text-gray-400">
-                        {new Date(conversation.last_message_at).toLocaleDateString()}
-                      </Text>
-                    )}
                   </TouchableOpacity>
                 );
               })

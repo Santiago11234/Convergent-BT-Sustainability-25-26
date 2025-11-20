@@ -216,6 +216,15 @@ export default function CommunityDetailScreen() {
     }
   };
 
+  const navigateToProfile = (targetUserId?: string | null) => {
+    if (!targetUserId) return;
+    if (user?.id === targetUserId) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${targetUserId}`);
+    }
+  };
+
   const sendMessage = async () => {
     if (!selectedChannel || !newMessage.trim() || !user) return;
 
@@ -464,23 +473,33 @@ export default function CommunityDetailScreen() {
                 renderItem={({ item }) => (
                   <View className="px-4 py-2">
                     <View className="flex-row">
-                      {item.users?.profile_pic_url ? (
-                        <Image
-                          source={{ uri: item.users.profile_pic_url }}
-                          className="w-10 h-10 rounded-full mr-3"
-                        />
-                      ) : (
-                        <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
-                          <Text className="text-white text-sm font-bold">
-                            {item.users?.name?.charAt(0).toUpperCase() || '?'}
-                          </Text>
-                        </View>
-                      )}
+                      <TouchableOpacity
+                        onPress={() => navigateToProfile(item.users?.id)}
+                        activeOpacity={0.8}
+                      >
+                        {item.users?.profile_pic_url ? (
+                          <Image
+                            source={{ uri: item.users.profile_pic_url }}
+                            className="w-10 h-10 rounded-full mr-3"
+                          />
+                        ) : (
+                          <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
+                            <Text className="text-white text-sm font-bold">
+                              {item.users?.name?.charAt(0).toUpperCase() || '?'}
+                            </Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
                       <View className="flex-1">
                         <View className="flex-row items-center mb-1">
-                          <Text className="text-sm font-semibold text-gray-900">
-                            {item.users?.name || 'Unknown'}
-                          </Text>
+                          <TouchableOpacity
+                            onPress={() => navigateToProfile(item.users?.id)}
+                            activeOpacity={0.7}
+                          >
+                            <Text className="text-sm font-semibold text-gray-900">
+                              {item.users?.name || 'Unknown'}
+                            </Text>
+                          </TouchableOpacity>
                           <Text className="text-xs text-gray-500 ml-2">
                             {new Date(item.created_at).toLocaleTimeString([], {
                               hour: '2-digit',
@@ -596,9 +615,11 @@ export default function CommunityDetailScreen() {
             <ScrollView className="flex-1">
               <View className="px-4 py-3">
                 {members.map((member) => (
-                  <View
+                  <TouchableOpacity
                     key={member.id}
                     className="flex-row items-center py-3 border-b border-gray-100"
+                    activeOpacity={0.8}
+                    onPress={() => navigateToProfile(member.users?.id)}
                   >
                     {member.users?.profile_pic_url ? (
                       <Image
@@ -632,7 +653,7 @@ export default function CommunityDetailScreen() {
                         Joined {new Date(member.joined_at).toLocaleDateString()}
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>

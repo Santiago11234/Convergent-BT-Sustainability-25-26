@@ -58,6 +58,7 @@ function RootLayoutNav() {
         <Stack.Screen name="createCommunity" options={{ headerShown: false }} />
         <Stack.Screen name="messages/index" options={{ headerShown: false }} />
         <Stack.Screen name="messages/[conversationId]" options={{ headerShown: false }} />
+        <Stack.Screen name="profile/[userId]" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       {shouldShowAIButton && <FloatingAIAssistant />}

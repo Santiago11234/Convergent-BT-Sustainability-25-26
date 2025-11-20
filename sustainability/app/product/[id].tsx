@@ -7,6 +7,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { ProductWithSeller } from '@/types/database.types';
 import { supabase } from '@/lib/supabase';
 import { useConversations } from '@/hooks/useConversations';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -14,6 +15,7 @@ export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { getOrCreateConversation } = useConversations();
+  const { user } = useAuth();
   const [product, setProduct] = useState<ProductWithSeller | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,15 @@ export default function ProductDetailsScreen() {
     if (product?.pickup_location) {
       const url = `https://maps.google.com/?q=${encodeURIComponent(product.pickup_location)}`;
       Linking.openURL(url);
+    }
+  };
+
+  const navigateToSellerProfile = () => {
+    if (!product?.seller?.id) return;
+    if (user?.id === product.seller.id) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${product.seller.id}`);
     }
   };
 
@@ -244,35 +255,41 @@ export default function ProductDetailsScreen() {
           <View className="mb-5 p-4 bg-gray-50 rounded-xl">
             <Text className="text-base font-semibold text-gray-900 mb-3">Seller Information</Text>
             <View className="flex-row items-center">
-              {product.seller.profile_pic_url ? (
-                <Image
-                  source={{ uri: product.seller.profile_pic_url }}
-                  className="w-14 h-14 rounded-full"
-                />
-              ) : (
-                <View className="w-14 h-14 rounded-full bg-primary items-center justify-center">
-                  <Text className="text-white text-xl font-bold">
-                    {product.seller.name.charAt(0).toUpperCase()}
-                  </Text>
+              <TouchableOpacity
+                className="flex-row items-center flex-1"
+                activeOpacity={0.8}
+                onPress={navigateToSellerProfile}
+              >
+                {product.seller.profile_pic_url ? (
+                  <Image
+                    source={{ uri: product.seller.profile_pic_url }}
+                    className="w-14 h-14 rounded-full"
+                  />
+                ) : (
+                  <View className="w-14 h-14 rounded-full bg-primary items-center justify-center">
+                    <Text className="text-white text-xl font-bold">
+                      {product.seller.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+                <View className="flex-1 ml-3">
+                  <View className="flex-row items-center">
+                    <Text className="text-lg font-bold text-gray-900">{product.seller.name}</Text>
+                    {product.seller.is_verified_seller && (
+                      <Ionicons name="checkmark-circle" size={18} color="#22C55E" className="ml-1" />
+                    )}
+                  </View>
+                  <View className="flex-row items-center mt-1">
+                    <Ionicons name="star" size={16} color="#F59E0B" />
+                    <Text className="text-sm font-semibold text-gray-700 ml-1">
+                      {product.seller.seller_rating.toFixed(1)}
+                    </Text>
+                    <Text className="text-sm text-gray-500 ml-1">
+                      ({product.seller.review_count} reviews)
+                    </Text>
+                  </View>
                 </View>
-              )}
-              <View className="flex-1 ml-3">
-                <View className="flex-row items-center">
-                  <Text className="text-lg font-bold text-gray-900">{product.seller.name}</Text>
-                  {product.seller.is_verified_seller && (
-                    <Ionicons name="checkmark-circle" size={18} color="#22C55E" className="ml-1" />
-                  )}
-                </View>
-                <View className="flex-row items-center mt-1">
-                  <Ionicons name="star" size={16} color="#F59E0B" />
-                  <Text className="text-sm font-semibold text-gray-700 ml-1">
-                    {product.seller.seller_rating.toFixed(1)}
-                  </Text>
-                  <Text className="text-sm text-gray-500 ml-1">
-                    ({product.seller.review_count} reviews)
-                  </Text>
-                </View>
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity
                 className="bg-primary px-4 py-2 rounded-lg"
                 onPress={handleMessageSeller}

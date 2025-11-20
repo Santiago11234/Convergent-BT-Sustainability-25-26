@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, GestureResponderEvent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +36,15 @@ export default function MessagesScreen() {
     return date.toLocaleDateString();
   };
 
+  const handleProfilePress = (targetUserId: string, event?: GestureResponderEvent) => {
+    event?.stopPropagation?.();
+    if (user?.id === targetUserId) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${targetUserId}`);
+    }
+  };
+
   const renderConversationCard = ({ item }: { item: ConversationWithDetails }) => {
     const otherUser = getOtherUser(item);
     if (!otherUser) return null;
@@ -50,30 +59,40 @@ export default function MessagesScreen() {
       >
         <View className="flex-row items-center">
           {/* Avatar */}
-          {otherUser.profile_pic_url ? (
-            <Image
-              source={{ uri: otherUser.profile_pic_url }}
-              className="w-14 h-14 rounded-full mr-3"
-            />
-          ) : (
-            <View className="w-14 h-14 rounded-full bg-primary items-center justify-center mr-3">
-              <Text className="text-white text-xl font-bold">
-                {otherUser.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={(event) => handleProfilePress(otherUser.id, event)}
+            className="mr-3"
+          >
+            {otherUser.profile_pic_url ? (
+              <Image
+                source={{ uri: otherUser.profile_pic_url }}
+                className="w-14 h-14 rounded-full"
+              />
+            ) : (
+              <View className="w-14 h-14 rounded-full bg-primary items-center justify-center">
+                <Text className="text-white text-xl font-bold">
+                  {otherUser.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
           {/* Message Preview */}
           <View className="flex-1">
             <View className="flex-row items-center justify-between mb-1">
-              <View className="flex-row items-center flex-1">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center flex-1"
+                onPress={(event) => handleProfilePress(otherUser.id, event)}
+              >
                 <Text className={`text-base ${hasUnread ? 'font-bold' : 'font-semibold'} text-gray-900`}>
                   {otherUser.name}
                 </Text>
                 {otherUser.is_verified_seller && (
-                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" className="ml-1" />
+                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
                 )}
-              </View>
+              </TouchableOpacity>
               <Text className="text-xs text-gray-500">
                 {formatTime(item.last_message_at)}
               </Text>

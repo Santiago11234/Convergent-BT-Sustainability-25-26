@@ -69,6 +69,15 @@ export default function MarketplaceScreen() {
     }
   }, [products, user, selectedCategory, priceRange, searchQuery, sortBy]);
 
+  const handleSellerPress = (sellerId?: string | null) => {
+    if (!sellerId) return;
+    if (sellerId === user?.id) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${sellerId}`);
+    }
+  };
+
   const renderListingCard = ({ item }: { item: typeof products[0] }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm shadow-gray-200/50"
@@ -108,10 +117,14 @@ export default function MarketplaceScreen() {
             </View>
           </View>
 
-          <View className="flex-row items-center mb-2">
+          <TouchableOpacity
+            className="flex-row items-center mb-2"
+            activeOpacity={0.8}
+            onPress={() => handleSellerPress(item.seller?.id)}
+          >
             <Ionicons name="person-outline" size={14} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-1">{item.seller?.name || 'Unknown Seller'}</Text>
-          </View>
+            <Text className="text-sm text-gray-600 ml-1 underline">{item.seller?.name || 'Unknown Seller'}</Text>
+          </TouchableOpacity>
 
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">

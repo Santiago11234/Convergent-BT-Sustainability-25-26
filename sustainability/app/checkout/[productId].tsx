@@ -165,6 +165,15 @@ export default function CheckoutScreen() {
     }).start();
   };
 
+  const handleSellerProfile = () => {
+    if (!product?.seller?.id) return;
+    if (user?.id === product.seller.id) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/profile/${product.seller.id}`);
+    }
+  };
+
   if (fetchingProduct) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
@@ -232,10 +241,14 @@ export default function CheckoutScreen() {
               <Text className="text-lg font-bold text-gray-900" numberOfLines={2}>
                 {product.title}
               </Text>
-              <View className="flex-row items-center mt-1">
+              <TouchableOpacity
+                className="flex-row items-center mt-1"
+                activeOpacity={0.8}
+                onPress={handleSellerProfile}
+              >
                 <Ionicons name="person-outline" size={14} color="#6B7280" />
-                <Text className="text-sm text-gray-600 ml-1">{product.seller.name}</Text>
-              </View>
+                <Text className="text-sm text-gray-600 ml-1 underline">{product.seller.name}</Text>
+              </TouchableOpacity>
               <Text className="text-sm text-gray-500 mt-1">
                 ${product.price.toFixed(2)} per {product.unit_of_measure}
               </Text>
