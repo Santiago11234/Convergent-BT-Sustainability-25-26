@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFeed } from '@/contexts/FeedContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFollow } from '@/contexts/FollowContext';
 import { Post, Comment } from '@/types';
 import { getRelativeTime } from '@/utils/relativeTime';
 import { supabase } from '@/lib/supabase';
@@ -15,6 +16,7 @@ export default function FeedScreen() {
   const router = useRouter();
   const { posts, loading, refreshPosts, likePost, unlikePost, getPostLikes, getPostComments, addComment, likeComment, unlikeComment, getCommentLikes } = useFeed();
   const { user } = useAuth();
+  const { isFollowing } = useFollow();
   const [refreshing, setRefreshing] = useState(false);
   const [postLikes, setPostLikes] = useState<Record<string, string[]>>({});
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -311,9 +313,24 @@ export default function FeedScreen() {
     }
   };
 
+  // Sort posts to prioritize followed users
+  const sortedPosts = [...posts].sort((a, b) => {
+    if (!user) return 0;
+    const aAuthorId = (a as any).users?.id || a.author_id;
+    const bAuthorId = (b as any).users?.id || b.author_id;
+    const aFollowing = aAuthorId !== user.id && isFollowing(aAuthorId);
+    const bFollowing = bAuthorId !== user.id && isFollowing(bAuthorId);
+    
+    if (aFollowing && !bFollowing) return -1;
+    if (!aFollowing && bFollowing) return 1;
+    return 0;
+  });
+
   const renderPost = ({ item }: { item: Post }) => {
     const userLikes = postLikes[item.id] || [];
     const isLiked = user?.id && userLikes.includes(user.id);
+    const authorId = (item as any).users?.id || item.author_id;
+    const isFollowingAuthor = user && authorId !== user.id && isFollowing(authorId);
 
     return (
       <View className="bg-white border-b border-gray-200 pb-4 mb-4">
@@ -322,7 +339,7 @@ export default function FeedScreen() {
           <TouchableOpacity
             className="flex-row items-center flex-1"
             activeOpacity={0.8}
-            onPress={() => goToProfile((item as any).users?.id || item.author_id)}
+            onPress={() => goToProfile(authorId)}
           >
             <View className="w-10 h-10 rounded-full bg-gray-200 mr-3 items-center justify-center overflow-hidden">
               {(item as any).users?.profile_pic_url ? (
@@ -335,9 +352,16 @@ export default function FeedScreen() {
               )}
             </View>
             <View className="flex-1">
-              <Text className="font-semibold text-gray-900">
-                {(item as any).users?.name || (item as any).users?.email?.split('@')[0] || 'Unknown User'}
-              </Text>
+              <View className="flex-row items-center">
+                <Text className="font-semibold text-gray-900">
+                  {(item as any).users?.name || (item as any).users?.email?.split('@')[0] || 'Unknown User'}
+                </Text>
+                {isFollowingAuthor && (
+                  <View className="ml-2 bg-primary/20 px-2 py-0.5 rounded-full">
+                    <Text className="text-xs font-semibold text-primary">Following</Text>
+                  </View>
+                )}
+              </View>
               <Text className="text-xs text-gray-500">
                 {getRelativeTime(item.created_at)}
               </Text>
@@ -459,7 +483,7 @@ export default function FeedScreen() {
       ) : (
         <>
           <FlatList
-            data={posts}
+            data={sortedPosts}
             renderItem={renderPost}
             keyExtractor={(item, index) => item.id || index.toString()}
             showsVerticalScrollIndicator={false}

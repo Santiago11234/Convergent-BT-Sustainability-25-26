@@ -258,16 +258,28 @@ export default function ProfileScreen() {
             {/* Stats from profile */}
             {profile && (
               <View className="flex-row mt-4 gap-6">
-                <View className="items-center">
+                <TouchableOpacity
+                  className="items-center"
+                  onPress={() => router.push(`/profile/followers/${user?.id}`)}
+                  activeOpacity={0.7}
+                >
                   <Text className="text-xl font-bold text-gray-900">{profile.follower_count || 0}</Text>
                   <Text className="text-xs text-gray-600">Followers</Text>
-                </View>
-                <View className="items-center">
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="items-center"
+                  onPress={() => router.push(`/profile/following/${user?.id}`)}
+                  activeOpacity={0.7}
+                >
                   <Text className="text-xl font-bold text-gray-900">{profile.following_count || 0}</Text>
                   <Text className="text-xs text-gray-600">Following</Text>
-                </View>
+                </TouchableOpacity>
                 <View className="items-center">
-                  <Text className="text-xl font-bold text-gray-900">{profile.seller_rating || 0}</Text>
+                  <Text className="text-xl font-bold text-gray-900">
+                    {profile.seller_rating && profile.seller_rating > 0 
+                      ? profile.seller_rating.toFixed(1) 
+                      : 'Unrated'}
+                  </Text>
                   <Text className="text-xs text-gray-600">Rating</Text>
                 </View>
               </View>

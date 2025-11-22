@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFollow } from '@/contexts/FollowContext';
 import { Product, User } from '@/types';
 
 type SellerProduct = Product & {
@@ -13,15 +15,32 @@ type SellerProduct = Product & {
 export default function PublicProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const router = useRouter();
+  const { user } = useAuth();
+  const { isFollowing, followUser, unfollowUser } = useFollow();
   const [profile, setProfile] = useState<User | null>(null);
   const [listings, setListings] = useState<SellerProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [followingLoading, setFollowingLoading] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    
     if (userId) {
       fetchProfile(userId);
+      cleanup = setupRealtimeListener(userId);
     }
+
+    return () => {
+      // Cleanup real-time listener
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, [userId]);
 
   const fetchProfile = async (targetUserId: string) => {
@@ -76,9 +95,119 @@ export default function PublicProfileScreen() {
     }
   };
 
+  const setupRealtimeListener = (targetUserId: string) => {
+    const channel = supabase
+      .channel(`profile_${targetUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${targetUserId}`,
+        },
+        (payload) => {
+          console.log('Profile update received:', payload);
+          setProfile((prev) => (prev ? { ...prev, ...payload.new } : null));
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${targetUserId}`,
+        },
+        (payload) => {
+          console.log('Follow change received for this user:', payload);
+          // Reload profile to get updated follower count
+          if (targetUserId) {
+            fetchProfile(targetUserId);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
   const handleOpenProduct = (productId: string) => {
     router.push(`/product/${productId}`);
   };
+
+  const handleFollow = async () => {
+    if (!user || !userId || user.id === userId) return;
+
+    try {
+      setFollowingLoading(true);
+      const wasFollowing = isFollowing(userId);
+      
+      // Optimistically update follower count immediately
+      if (profile) {
+        setProfile({
+          ...profile,
+          follower_count: wasFollowing 
+            ? Math.max(0, (profile.follower_count || 0) - 1)
+            : (profile.follower_count || 0) + 1,
+        });
+      }
+      
+      if (wasFollowing) {
+        await unfollowUser(userId);
+      } else {
+        await followUser(userId);
+      }
+    } catch (error: any) {
+      console.error('Error following/unfollowing:', error);
+      // Revert optimistic update on error
+      if (profile && userId) {
+        const wasFollowing = isFollowing(userId);
+        setProfile({
+          ...profile,
+          follower_count: wasFollowing 
+            ? (profile.follower_count || 0) + 1
+            : Math.max(0, (profile.follower_count || 0) - 1),
+        });
+      }
+      Alert.alert('Error', error.message || 'Failed to update follow status');
+    } finally {
+      setFollowingLoading(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!user || !userId || !reportReason.trim()) return;
+
+    try {
+      setReporting(true);
+      const { error } = await supabase.from('reports').insert({
+        reporter_id: user.id,
+        reported_user_id: userId,
+        report_type: 'account',
+        reason: reportReason.trim(),
+        description: reportDescription.trim() || null,
+        status: 'pending',
+      });
+
+      if (error) throw error;
+
+      Alert.alert('Success', 'Report submitted successfully. We will review it shortly.');
+      setShowReportModal(false);
+      setReportReason('');
+      setReportDescription('');
+    } catch (error: any) {
+      console.error('Error reporting user:', error);
+      Alert.alert('Error', error.message || 'Failed to submit report');
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const isOwnProfile = user?.id === userId;
+  const currentlyFollowing = isFollowing(userId || '');
 
   if (loading) {
     return (
@@ -115,6 +244,14 @@ export default function PublicProfileScreen() {
         <Text className="text-lg font-bold text-gray-900 flex-1" numberOfLines={1}>
           Profile
         </Text>
+        {!isOwnProfile && user && (
+          <TouchableOpacity
+            onPress={() => setShowReportModal(true)}
+            className="p-2 -mr-2"
+          >
+            <Ionicons name="flag-outline" size={24} color="#EF4444" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -146,18 +283,47 @@ export default function PublicProfileScreen() {
               <Text className="text-sm text-gray-600 text-center mt-4">{profile.bio}</Text>
             )}
 
+            {/* Follow Button (if not own profile) */}
+            {!isOwnProfile && user && (
+              <TouchableOpacity
+                onPress={handleFollow}
+                disabled={followingLoading}
+                className={`mt-4 px-6 py-2 rounded-xl ${
+                  currentlyFollowing ? 'bg-gray-200' : 'bg-primary'
+                }`}
+              >
+                {followingLoading ? (
+                  <ActivityIndicator size="small" color={currentlyFollowing ? '#6B7280' : 'white'} />
+                ) : (
+                  <Text className={`font-semibold ${currentlyFollowing ? 'text-gray-700' : 'text-white'}`}>
+                    {currentlyFollowing ? 'Following' : 'Follow'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
+
             <View className="flex-row mt-4 gap-6">
-              <View className="items-center">
+              <TouchableOpacity
+                className="items-center"
+                onPress={() => router.push(`/profile/followers/${userId}`)}
+                activeOpacity={0.7}
+              >
                 <Text className="text-xl font-bold text-gray-900">{profile.follower_count || 0}</Text>
                 <Text className="text-xs text-gray-600">Followers</Text>
-              </View>
-              <View className="items-center">
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="items-center"
+                onPress={() => router.push(`/profile/following/${userId}`)}
+                activeOpacity={0.7}
+              >
                 <Text className="text-xl font-bold text-gray-900">{profile.following_count || 0}</Text>
                 <Text className="text-xs text-gray-600">Following</Text>
-              </View>
+              </TouchableOpacity>
               <View className="items-center">
                 <Text className="text-xl font-bold text-gray-900">
-                  {profile.seller_rating ? profile.seller_rating.toFixed(1) : '0.0'}
+                  {profile.seller_rating && profile.seller_rating > 0 
+                    ? profile.seller_rating.toFixed(1) 
+                    : 'Unrated'}
                 </Text>
                 <Text className="text-xs text-gray-600">Rating</Text>
               </View>
@@ -235,6 +401,74 @@ export default function PublicProfileScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Report Modal */}
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-gray-900">Report Account</Text>
+              <TouchableOpacity onPress={() => setShowReportModal(false)}>
+                <Ionicons name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">Reason *</Text>
+              <TextInput
+                className="bg-gray-100 rounded-xl px-4 py-3 text-base border border-gray-200"
+                placeholder="e.g., Spam, Harassment, Inappropriate content..."
+                placeholderTextColor="#9CA3AF"
+                value={reportReason}
+                onChangeText={setReportReason}
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">Additional Details</Text>
+              <TextInput
+                className="bg-gray-100 rounded-xl px-4 py-3 h-24 text-base border border-gray-200"
+                placeholder="Provide more information (optional)"
+                placeholderTextColor="#9CA3AF"
+                value={reportDescription}
+                onChangeText={setReportDescription}
+                multiline
+              />
+            </View>
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setReportDescription('');
+                }}
+                className="flex-1 bg-gray-200 px-4 py-3 rounded-xl"
+              >
+                <Text className="text-center font-semibold text-gray-700">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleReport}
+                disabled={!reportReason.trim() || reporting}
+                className={`flex-1 px-4 py-3 rounded-xl ${
+                  !reportReason.trim() || reporting ? 'bg-gray-300' : 'bg-red-600'
+                }`}
+              >
+                {reporting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-center font-semibold text-white">Submit Report</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

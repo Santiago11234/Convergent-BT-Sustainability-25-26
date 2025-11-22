@@ -136,14 +136,16 @@ export default function ChatScreen() {
                   <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
                 )}
               </View>
-              {otherUser.seller_rating > 0 && (
-                <View className="flex-row items-center">
-                  <Ionicons name="star" size={12} color="#F59E0B" />
-                  <Text className="text-xs text-gray-500 ml-1">
-                    {otherUser.seller_rating.toFixed(1)} ({otherUser.review_count} reviews)
-                  </Text>
-                </View>
-              )}
+            {otherUser.seller_rating && otherUser.seller_rating > 0 ? (
+              <View className="flex-row items-center">
+                <Ionicons name="star" size={12} color="#F59E0B" />
+                <Text className="text-xs text-gray-500 ml-1">
+                  {otherUser.seller_rating.toFixed(1)} ({otherUser.review_count} reviews)
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-xs text-gray-500">Unrated</Text>
+            )}
             </View>
           </TouchableOpacity>
 

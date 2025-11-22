@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { MarketplaceProvider } from '@/contexts/MarketplaceContext';
 import { FeedProvider } from '@/contexts/FeedContext';
 import { CommunityProvider } from '@/contexts/CommunityContext';
+import { FollowProvider } from '@/contexts/FollowContext';
 import FloatingAIAssistant from '@/components/FloatingAIAssistant';
 
 export const unstable_settings = {
@@ -22,6 +23,29 @@ function RootLayoutNav() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  // Wrap children with FollowProvider if user is available
+  const content = (
+    <Stack
+      screenOptions={{
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="checkout/[productId]" options={{ headerShown: false }} />
+      <Stack.Screen name="community/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="createPost" options={{ headerShown: false }} />
+      <Stack.Screen name="createCommunity" options={{ headerShown: false }} />
+      <Stack.Screen name="messages/index" options={{ headerShown: false }} />
+      <Stack.Screen name="messages/[conversationId]" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/[userId]" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/followers/[userId]" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/following/[userId]" options={{ headerShown: false }} />
+      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    </Stack>
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -44,24 +68,10 @@ function RootLayoutNav() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack
-        screenOptions={{
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="checkout/[productId]" options={{ headerShown: false }} />
-        <Stack.Screen name="community/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="createPost" options={{ headerShown: false }} />
-        <Stack.Screen name="createCommunity" options={{ headerShown: false }} />
-        <Stack.Screen name="messages/index" options={{ headerShown: false }} />
-        <Stack.Screen name="messages/[conversationId]" options={{ headerShown: false }} />
-        <Stack.Screen name="profile/[userId]" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      {shouldShowAIButton && <FloatingAIAssistant />}
+      <FollowProvider userId={user?.id || null}>
+        {content}
+        {shouldShowAIButton && <FloatingAIAssistant />}
+      </FollowProvider>
     </View>
   );
 }

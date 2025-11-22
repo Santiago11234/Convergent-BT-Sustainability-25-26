@@ -280,13 +280,19 @@ export default function ProductDetailsScreen() {
                     )}
                   </View>
                   <View className="flex-row items-center mt-1">
-                    <Ionicons name="star" size={16} color="#F59E0B" />
-                    <Text className="text-sm font-semibold text-gray-700 ml-1">
-                      {product.seller.seller_rating.toFixed(1)}
-                    </Text>
-                    <Text className="text-sm text-gray-500 ml-1">
-                      ({product.seller.review_count} reviews)
-                    </Text>
+                    {product.seller.seller_rating && product.seller.seller_rating > 0 ? (
+                      <>
+                        <Ionicons name="star" size={16} color="#F59E0B" />
+                        <Text className="text-sm font-semibold text-gray-700 ml-1">
+                          {product.seller.seller_rating.toFixed(1)}
+                        </Text>
+                        <Text className="text-sm text-gray-500 ml-1">
+                          ({product.seller.review_count} reviews)
+                        </Text>
+                      </>
+                    ) : (
+                      <Text className="text-sm text-gray-500 ml-1">Unrated</Text>
+                    )}
                   </View>
                 </View>
               </TouchableOpacity>
