@@ -81,16 +81,81 @@ export function useMessages(conversationId: string | null) {
     };
   }, [conversationId, fetchMessages]);
 
-  const sendMessage = async (text: string): Promise<boolean> => {
-    if (!user || !conversationId || !text.trim()) return false;
+  const uploadMessageImage = async (localUri: string): Promise<string> => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get file extension
+      const fileExtension = localUri.split('.').pop() || 'jpg';
+      const fileName = `${authUser.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExtension}`;
+      const filePath = `message-images/${fileName}`;
+
+      // Load file as ArrayBuffer for React Native
+      const fileData = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', localUri);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => {
+          if (xhr.status === 200 || xhr.status === 0) {
+            resolve(xhr.response);
+          } else {
+            reject(new Error(`Failed to load file: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Failed to load file'));
+        xhr.send();
+      });
+
+      // Convert ArrayBuffer to Uint8Array for Supabase
+      const fileArray = new Uint8Array(fileData);
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('posts') // Using same bucket as posts
+        .upload(filePath, fileArray, {
+          contentType: `image/${fileExtension}`,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('posts')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading message image:', error);
+      throw error;
+    }
+  };
+
+  const sendMessage = async (text: string, images?: string[]): Promise<boolean> => {
+    if (!user || !conversationId || (!text.trim() && (!images || images.length === 0))) return false;
 
     try {
       setSending(true);
 
+      // Upload images if any
+      let imageUrls: string[] = [];
+      if (images && images.length > 0) {
+        imageUrls = await Promise.all(
+          images.map(uri => uploadMessageImage(uri))
+        );
+      }
+
       const { error: insertError } = await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: user.id,
-        text: text.trim(),
+        text: text.trim() || '',
+        images: imageUrls.length > 0 ? imageUrls : [],
         is_read: false,
       });
 

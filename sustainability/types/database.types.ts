@@ -210,6 +210,7 @@ export interface Message {
   conversation_id: string; // UUID reference to Conversation
   sender_id: string; // UUID reference to User
   text: string;
+  images: string[]; // Array of image URLs
   is_read: boolean;
   created_at: string; // ISO timestamp
 }
