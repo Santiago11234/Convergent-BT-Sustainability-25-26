@@ -1,5 +1,5 @@
 -- Add missing columns to products table for create-post functionality
--- Run this in your Supabase SQL Editor
+
 
 -- Add payment methods (array of strings)
 ALTER TABLE products ADD COLUMN IF NOT EXISTS payment_methods TEXT[];

@@ -1,5 +1,4 @@
 -- Adds AI verification metadata columns to products table
--- Run in Supabase SQL editor
 
 ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS verification_status text DEFAULT 'pending';

@@ -3,8 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { User } from '@/types';
 
 interface FollowContextType {
-  following: string[]; // Array of user IDs the current user is following
-  followers: string[]; // Array of user IDs following the current user
+  following: string[];
+  followers: string[];
   isFollowing: (userId: string) => boolean;
   followUser: (userId: string) => Promise<void>;
   unfollowUser: (userId: string) => Promise<void>;
@@ -40,7 +40,6 @@ export const FollowProvider = ({ children, userId }: { children: ReactNode; user
     }
 
     return () => {
-      // Cleanup listeners
       supabase.removeAllChannels();
     };
   }, [userId]);
@@ -90,8 +89,7 @@ export const FollowProvider = ({ children, userId }: { children: ReactNode; user
           filter: `follower_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('Follow change received:', payload);
-          loadFollows(); // Reload follows when changes occur
+          loadFollows();
         }
       )
       .on(
@@ -103,8 +101,7 @@ export const FollowProvider = ({ children, userId }: { children: ReactNode; user
           filter: `following_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('Follower change received:', payload);
-          loadFollows(); // Reload followers when changes occur
+          loadFollows();
         }
       )
       .subscribe();
@@ -131,8 +128,6 @@ export const FollowProvider = ({ children, userId }: { children: ReactNode; user
 
       if (error) {
         if (error.code === '23505') {
-          // Already following, ignore
-          console.log('Already following this user');
           return;
         }
         throw error;

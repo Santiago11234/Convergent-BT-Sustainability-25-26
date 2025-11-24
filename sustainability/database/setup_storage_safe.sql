@@ -1,6 +1,4 @@
 -- Setup Supabase Storage Bucket and RLS Policies for Post Images
--- Run this in your Supabase SQL Editor
--- This version doesn't drop existing policies, so it's safer and doesn't require admin permissions
 
 -- Step 1: Create the storage bucket (if it doesn't exist)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

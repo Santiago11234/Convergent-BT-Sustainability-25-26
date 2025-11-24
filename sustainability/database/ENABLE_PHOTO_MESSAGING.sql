@@ -1,8 +1,6 @@
 -- ============================================================================
--- Enable Photo Messaging - Run this in Supabase SQL Editor
+-- Enable Photo Messaging
 -- ============================================================================
--- This script adds image support to the messages table
--- Photos will be stored in the existing 'posts' storage bucket
 
 -- Step 1: Add images column to messages table
 ALTER TABLE public.messages 

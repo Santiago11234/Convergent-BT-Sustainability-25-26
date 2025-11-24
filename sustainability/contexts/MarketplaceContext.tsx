@@ -180,8 +180,6 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
         verification_completed_at: productData.verification_completed_at || null,
       };
 
-      console.log('Attempting to insert product:', productInsert);
-
       const { data, error } = await supabase
         .from('products')
         .insert([productInsert])
@@ -215,7 +213,6 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (data) {
-        console.log('Product created successfully:', data);
         const newProduct = data as ProductWithSeller;
 
         // Calculate distance for the new product
@@ -383,7 +380,6 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Upload image first
       const imageUrl = await uploadImage(imageUri, { folder: 'freshness-check' });
-      console.log('Image uploaded, URL:', imageUrl);
 
       // Call the fresh/stale classification API
       const { data, error } = await supabase.functions.invoke('classify-fresh-stale', {
@@ -392,7 +388,6 @@ export const MarketplaceProvider = ({ children }: { children: ReactNode }) => {
         },
       });
 
-      console.log('Edge Function response:', { data, error });
 
       if (error) {
         console.error('Classification error:', error);

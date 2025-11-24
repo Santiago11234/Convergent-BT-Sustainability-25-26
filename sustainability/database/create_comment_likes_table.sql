@@ -1,5 +1,5 @@
 -- Create comment_likes table for liking comments
--- Run this in your Supabase SQL Editor
+
 
 CREATE TABLE IF NOT EXISTS public.comment_likes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
