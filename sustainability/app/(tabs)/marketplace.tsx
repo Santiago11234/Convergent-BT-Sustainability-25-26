@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, Image, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, Image, Modal, ActivityIndicator, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -7,10 +7,8 @@ import { ProductCategory } from '@/types';
 import { useMarketplace } from '@/contexts/MarketplaceContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-
 const CATEGORIES: ('All' | ProductCategory)[] = ['All', 'vegetables', 'fruits', 'eggs', 'herbs', 'dairy', 'other'];
 
-// Helper to capitalize category names
 const formatCategoryName = (category: string): string => {
   return category.charAt(0).toUpperCase() + category.slice(1);
 };
@@ -26,25 +24,29 @@ export default function MarketplaceScreen() {
   const [distanceRange, setDistanceRange] = useState(10);
   const [showSortModal, setShowSortModal] = useState(false);
   const [sortBy, setSortBy] = useState<'distance' | 'price-low' | 'price-high' | 'stock'>('distance');
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  // Client-side filtering and sorting
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const filteredAndSortedProducts = useMemo(() => {
-    // Filter out products created by the current user
     let filteredProducts = products.filter(product => product.seller_id !== user?.id);
 
-    // Filter by category
     if (selectedCategory !== 'All') {
       filteredProducts = filteredProducts.filter(product => 
         product.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
-    // Filter by price range
     filteredProducts = filteredProducts.filter(product => 
       product.price >= priceRange[0] && product.price <= priceRange[1]
     );
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filteredProducts = filteredProducts.filter(product => 
@@ -54,7 +56,6 @@ export default function MarketplaceScreen() {
       );
     }
 
-    // Sort products
     switch (sortBy) {
       case 'distance':
         return filteredProducts.sort((a, b) => (a.distance || 0) - (b.distance || 0));
@@ -78,106 +79,154 @@ export default function MarketplaceScreen() {
     }
   };
 
-  const renderListingCard = ({ item }: { item: typeof products[0] }) => (
-    <TouchableOpacity
-      className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm shadow-gray-200/50"
-      activeOpacity={0.7}
-      onPress={() => router.push(`/product/${item.id}`)}
-    >
-      <View className="flex-row">
-        {/* Product Image */}
-        <View className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden mr-3">
-          {item.images && item.images.length > 0 && item.images[0] ? (
-            <Image
-              source={{ uri: item.images[0] }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-green-50">
-              <Ionicons name="image-outline" size={32} color="#9CA3AF" />
-            </View>
-          )}
-        </View>
+  // Separate component for listing card to use hooks properly
+  const ListingCard = ({ item, index, fadeAnim }: { item: typeof products[0]; index: number; fadeAnim: Animated.Value }) => {
+    const scaleAnim = React.useRef(new Animated.Value(1)).current; // Start at 1 (no scale)
+    const hasAnimated = React.useRef(false);
 
-        {/* Product Details */}
-        <View className="flex-1">
-          <View className="flex-row items-start justify-between mb-1">
-            <Text className="text-lg font-bold text-gray-900 flex-1" numberOfLines={1}>
-              {item.title || 'Untitled Product'}
-            </Text>
-            <View className={`px-2 py-1 rounded-full ml-2 ${
-              (item.quantity_available || 0) < 10 ? 'bg-orange-100' : 'bg-green-100'
-            }`}>
-              <Text className={`text-xs font-semibold ${
-                (item.quantity_available || 0) < 10 ? 'text-orange-700' : 'text-green-700'
+    React.useEffect(() => {
+      if (!hasAnimated.current) {
+        scaleAnim.setValue(0.95);
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+          delay: index * 30,
+        }).start();
+        hasAnimated.current = true;
+      }
+    }, []);
+
+    return (
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }],
+        }}
+      >
+        <TouchableOpacity
+          className="bg-white rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm"
+          activeOpacity={0.9}
+          onPress={() => router.push(`/product/${item.id}`)}
+        >
+          {/* Product Image */}
+          <View className="h-48 bg-gray-100 relative">
+            {item.images && item.images.length > 0 && item.images[0] ? (
+              <Image
+                source={{ uri: item.images[0] }}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full items-center justify-center bg-gradient-to-br from-green-50 to-primary/10">
+                <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+              </View>
+            )}
+            {/* Stock Badge */}
+            <View className="absolute top-4 right-4">
+              <View className={`px-3 py-1.5 rounded-full ${
+                (item.quantity_available || 0) < 10 ? 'bg-orange-500' : 'bg-primary'
               }`}>
-                {item.quantity_available || 0} in stock
+                <Text className="text-white font-bold text-xs">
+                  {item.quantity_available || 0} in stock
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Product Details */}
+          <View className="p-5">
+            <View className="flex-row items-start justify-between mb-2">
+              <Text className="text-xl font-bold text-gray-900 flex-1 mr-2" numberOfLines={2}>
+                {item.title || 'Untitled Product'}
               </Text>
             </View>
-          </View>
 
-          <TouchableOpacity
-            className="flex-row items-center mb-2"
-            activeOpacity={0.8}
-            onPress={() => handleSellerPress(item.seller?.id)}
-          >
-            <Ionicons name="person-outline" size={14} color="#6B7280" />
-            <Text className="text-sm text-gray-600 ml-1 underline">{item.seller?.name || 'Unknown Seller'}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-row items-center mb-3"
+              activeOpacity={0.7}
+              onPress={() => handleSellerPress(item.seller?.id)}
+            >
+              <View className="w-6 h-6 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
+                {item.seller?.profile_pic_url ? (
+                  <Image
+                    source={{ uri: item.seller.profile_pic_url }}
+                    className="w-full h-full rounded-full"
+                  />
+                ) : (
+                  <Ionicons name="person" size={12} color="#9CA3AF" />
+                )}
+              </View>
+              <Text className="text-sm font-semibold text-gray-700">{item.seller?.name || 'Unknown Seller'}</Text>
+            </TouchableOpacity>
 
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <Ionicons name="location-outline" size={14} color="#6B7280" />
-              <Text className="text-xs text-gray-500 ml-1">{(item.distance || 0).toFixed(1)} miles away</Text>
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <Ionicons name="location-outline" size={14} color="#6B7280" />
+                <Text className="text-xs text-gray-600 ml-1">{(item.distance || 0).toFixed(1)} mi</Text>
+              </View>
+              <View className="flex-row items-baseline">
+                <Text className="text-2xl font-black text-primary">
+                  ${(item.price || 0).toFixed(2)}
+                </Text>
+                <Text className="text-sm text-gray-500 ml-1">/{item.unit_of_measure || 'unit'}</Text>
+              </View>
             </View>
-            <Text className="text-xl font-bold text-primary">
-              ${(item.price || 0).toFixed(2)}
-              <Text className="text-sm text-gray-500 font-normal">/{item.unit_of_measure || 'unit'}</Text>
-            </Text>
           </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const renderListingCard = ({ item, index }: { item: typeof products[0]; index: number }) => (
+    <ListingCard item={item} index={index} fadeAnim={fadeAnim} />
   );
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
+      <View className="bg-white px-6 py-4 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-3xl font-black text-gray-900">Marketplace</Text>
+          <View className="flex-row items-center">
+            <Image
+              source={require('@/assets/logos/logo.png')}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+            />
+            <Text className="text-2xl font-black text-gray-900 ml-2">Marketplace</Text>
+          </View>
           <TouchableOpacity 
             onPress={() => router.push('/(tabs)/createProduct')}
-            className="bg-primary px-4 py-2 rounded-xl flex-row items-center"
+            className="bg-primary px-4 py-2 rounded-xl flex-row items-center shadow-sm"
+            activeOpacity={0.8}
           >
-            <Ionicons name="add-circle" size={20} color="white" />
+            <Ionicons name="add-circle" size={18} color="white" />
             <Text className="text-white font-semibold ml-2">Sell</Text>
           </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row items-center gap-2 mb-3">
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-4 py-3">
+        <View className="flex-row items-center gap-3 mb-4">
+          <View className="flex-1 flex-row items-center bg-gray-100 rounded-2xl px-4 py-3">
             <Ionicons name="search" size={20} color="#9CA3AF" />
             <TextInput
-              className="flex-1 ml-2 text-base text-gray-900"
+              className="flex-1 ml-3 text-base text-gray-900"
               placeholder="Search products or sellers..."
               placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <TouchableOpacity onPress={() => setSearchQuery('')} activeOpacity={0.7}>
                 <Ionicons name="close-circle" size={20} color="#9CA3AF" />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Filter Button */}
           <TouchableOpacity
             onPress={() => setShowFilters(!showFilters)}
-            className={`p-3 rounded-xl ${showFilters ? 'bg-primary' : 'bg-gray-100'}`}
+            className={`p-3 rounded-2xl ${showFilters ? 'bg-primary' : 'bg-gray-100'}`}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -198,7 +247,7 @@ export default function MarketplaceScreen() {
             <TouchableOpacity
               key={category}
               onPress={() => setSelectedCategory(category)}
-              className={`px-4 py-2 mr-3 rounded-full ${
+              className={`px-4 py-2 mr-2 rounded-full ${
                 selectedCategory === category
                   ? 'bg-primary'
                   : 'bg-gray-100'
@@ -206,7 +255,7 @@ export default function MarketplaceScreen() {
               activeOpacity={0.7}
             >
               <Text
-                className={`font-semibold ${
+                className={`font-semibold text-sm ${
                   selectedCategory === category
                     ? 'text-white'
                     : 'text-gray-700'
@@ -221,11 +270,13 @@ export default function MarketplaceScreen() {
 
       {/* Filters Panel */}
       {showFilters && (
-        <View className="bg-white px-4 py-4 border-b border-gray-100">
-          {/* Distance Filter */}
+        <Animated.View 
+          className="bg-white px-6 py-4 border-b border-gray-100"
+          style={{ opacity: fadeAnim }}
+        >
           <View className="mb-4">
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-sm font-semibold text-gray-900">Distance Range</Text>
+              <Text className="text-sm font-bold text-gray-900">Distance Range</Text>
               <Text className="text-sm text-primary font-bold">≤ {distanceRange} miles</Text>
             </View>
             <View className="flex-row gap-3">
@@ -233,12 +284,13 @@ export default function MarketplaceScreen() {
                 <TouchableOpacity
                   key={distance}
                   onPress={() => setDistanceRange(distance)}
-                  className={`flex-1 py-2 rounded-lg ${
+                  className={`flex-1 py-2.5 rounded-xl ${
                     distanceRange === distance ? 'bg-primary' : 'bg-gray-100'
                   }`}
+                  activeOpacity={0.7}
                 >
                   <Text
-                    className={`text-center font-semibold ${
+                    className={`text-center font-semibold text-sm ${
                       distanceRange === distance ? 'text-white' : 'text-gray-700'
                     }`}
                   >
@@ -249,87 +301,59 @@ export default function MarketplaceScreen() {
             </View>
           </View>
 
-          {/* Price Range Filter */}
           <View>
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-sm font-semibold text-gray-900">Price Range</Text>
+              <Text className="text-sm font-bold text-gray-900">Price Range</Text>
               <Text className="text-sm text-primary font-bold">
                 ${priceRange[0]} - ${priceRange[1]}
               </Text>
             </View>
             <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => setPriceRange([0, 10])}
-                className={`flex-1 py-2 rounded-lg ${
-                  priceRange[1] === 10 ? 'bg-primary' : 'bg-gray-100'
-                }`}
-              >
-                <Text
-                  className={`text-center font-semibold ${
-                    priceRange[1] === 10 ? 'text-white' : 'text-gray-700'
+              {[10, 25, 50].map(maxPrice => (
+                <TouchableOpacity
+                  key={maxPrice}
+                  onPress={() => setPriceRange([0, maxPrice])}
+                  className={`flex-1 py-2.5 rounded-xl ${
+                    priceRange[1] === maxPrice ? 'bg-primary' : 'bg-gray-100'
                   }`}
+                  activeOpacity={0.7}
                 >
-                  $0-10
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setPriceRange([0, 25])}
-                className={`flex-1 py-2 rounded-lg ${
-                  priceRange[1] === 25 ? 'bg-primary' : 'bg-gray-100'
-                }`}
-              >
-                <Text
-                  className={`text-center font-semibold ${
-                    priceRange[1] === 25 ? 'text-white' : 'text-gray-700'
-                  }`}
-                >
-                  $0-25
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setPriceRange([0, 50])}
-                className={`flex-1 py-2 rounded-lg ${
-                  priceRange[1] === 50 ? 'bg-primary' : 'bg-gray-100'
-                }`}
-              >
-                <Text
-                  className={`text-center font-semibold ${
-                    priceRange[1] === 50 ? 'text-white' : 'text-gray-700'
-                  }`}
-                >
-                  All
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    className={`text-center font-semibold text-sm ${
+                      priceRange[1] === maxPrice ? 'text-white' : 'text-gray-700'
+                    }`}
+                  >
+                    ${maxPrice === 50 ? 'All' : `0-${maxPrice}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* Listings */}
-      <View className="flex-1 px-4 pt-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-sm font-semibold text-gray-600">
-            {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'listing' : 'listings'} found
+      <View className="flex-1">
+        <View className="flex-row items-center justify-between px-6 py-4">
+          <Text className="text-sm font-bold text-gray-600">
+            {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'listing' : 'listings'}
           </Text>
           <TouchableOpacity
             className="flex-row items-center"
             onPress={() => setShowSortModal(true)}
+            activeOpacity={0.7}
           >
-            <Text className="text-sm font-semibold text-gray-600 mr-1">Sort by</Text>
+            <Text className="text-sm font-bold text-gray-600 mr-1">Sort by</Text>
             <Ionicons name="swap-vertical" size={16} color="#6B7280" />
           </TouchableOpacity>
         </View>
 
-        {/* Loading State */}
-        {loading && (
+        {loading ? (
           <View className="items-center justify-center py-20">
             <ActivityIndicator size="large" color="#22C55E" />
             <Text className="text-gray-600 mt-4">Loading products...</Text>
           </View>
-        )}
-
-        {/* Products List */}
-        {!loading && (
+        ) : (
           <FlatList
             data={filteredAndSortedProducts}
             renderItem={renderListingCard}
@@ -337,10 +361,10 @@ export default function MarketplaceScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
             ListEmptyComponent={
-              <View className="items-center justify-center py-20">
+              <View className="items-center justify-center py-20 px-6">
                 <Ionicons name="search-outline" size={64} color="#D1D5DB" />
-                <Text className="text-lg font-semibold text-gray-400 mt-4">No listings found</Text>
-                <Text className="text-sm text-gray-400 mt-1">Try adjusting your filters</Text>
+                <Text className="text-lg font-bold text-gray-400 mt-4">No listings found</Text>
+                <Text className="text-sm text-gray-400 mt-2 text-center">Try adjusting your filters</Text>
               </View>
             }
           />
@@ -363,109 +387,40 @@ export default function MarketplaceScreen() {
             <View className="bg-white rounded-t-3xl px-6 py-6">
               <Text className="text-xl font-bold text-gray-900 mb-4">Sort By</Text>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setSortBy('distance');
-                  setShowSortModal(false);
-                }}
-                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
-                  sortBy === 'distance' ? 'bg-green-50' : ''
-                }`}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="location"
-                    size={20}
-                    color={sortBy === 'distance' ? '#22C55E' : '#6B7280'}
-                  />
-                  <Text className={`ml-3 font-semibold ${
-                    sortBy === 'distance' ? 'text-primary' : 'text-gray-700'
-                  }`}>
-                    Nearest First
-                  </Text>
-                </View>
-                {sortBy === 'distance' && (
-                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setSortBy('price-low');
-                  setShowSortModal(false);
-                }}
-                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
-                  sortBy === 'price-low' ? 'bg-green-50' : ''
-                }`}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="arrow-down"
-                    size={20}
-                    color={sortBy === 'price-low' ? '#22C55E' : '#6B7280'}
-                  />
-                  <Text className={`ml-3 font-semibold ${
-                    sortBy === 'price-low' ? 'text-primary' : 'text-gray-700'
-                  }`}>
-                    Price: Low to High
-                  </Text>
-                </View>
-                {sortBy === 'price-low' && (
-                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setSortBy('price-high');
-                  setShowSortModal(false);
-                }}
-                className={`flex-row items-center justify-between py-4 px-4 rounded-xl mb-2 ${
-                  sortBy === 'price-high' ? 'bg-green-50' : ''
-                }`}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="arrow-up"
-                    size={20}
-                    color={sortBy === 'price-high' ? '#22C55E' : '#6B7280'}
-                  />
-                  <Text className={`ml-3 font-semibold ${
-                    sortBy === 'price-high' ? 'text-primary' : 'text-gray-700'
-                  }`}>
-                    Price: High to Low
-                  </Text>
-                </View>
-                {sortBy === 'price-high' && (
-                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setSortBy('stock');
-                  setShowSortModal(false);
-                }}
-                className={`flex-row items-center justify-between py-4 px-4 rounded-xl ${
-                  sortBy === 'stock' ? 'bg-green-50' : ''
-                }`}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="cube"
-                    size={20}
-                    color={sortBy === 'stock' ? '#22C55E' : '#6B7280'}
-                  />
-                  <Text className={`ml-3 font-semibold ${
-                    sortBy === 'stock' ? 'text-primary' : 'text-gray-700'
-                  }`}>
-                    Most in Stock
-                  </Text>
-                </View>
-                {sortBy === 'stock' && (
-                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-                )}
-              </TouchableOpacity>
+              {[
+                { value: 'distance', label: 'Nearest First', icon: 'location' },
+                { value: 'price-low', label: 'Price: Low to High', icon: 'arrow-down' },
+                { value: 'price-high', label: 'Price: High to Low', icon: 'arrow-up' },
+                { value: 'stock', label: 'Most in Stock', icon: 'cube' },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => {
+                    setSortBy(option.value as any);
+                    setShowSortModal(false);
+                  }}
+                  className={`flex-row items-center justify-between py-4 px-4 rounded-2xl mb-2 ${
+                    sortBy === option.value ? 'bg-primary/10' : ''
+                  }`}
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center">
+                    <Ionicons
+                      name={option.icon as any}
+                      size={20}
+                      color={sortBy === option.value ? '#22C55E' : '#6B7280'}
+                    />
+                    <Text className={`ml-3 font-semibold ${
+                      sortBy === option.value ? 'text-primary' : 'text-gray-700'
+                    }`}>
+                      {option.label}
+                    </Text>
+                  </View>
+                  {sortBy === option.value && (
+                    <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                  )}
+                </TouchableOpacity>
+              ))}
             </View>
           </TouchableOpacity>
         </TouchableOpacity>

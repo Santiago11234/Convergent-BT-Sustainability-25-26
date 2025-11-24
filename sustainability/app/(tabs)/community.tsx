@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, ScrollView, Image, TextInput, GestureResponderEvent } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, ScrollView, Image, TextInput, GestureResponderEvent, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -25,6 +25,15 @@ export default function CommunityScreen() {
   const [activeTab, setActiveTab] = useState<'communities' | 'messages'>('communities');
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -50,7 +59,6 @@ export default function CommunityScreen() {
 
       if (error) throw error;
 
-      // Get the last message for each conversation
       const conversationsWithLastMessage = await Promise.all(
         (data || []).map(async (conv) => {
           const { data: lastMsg } = await supabase
@@ -130,9 +138,44 @@ export default function CommunityScreen() {
     }
   };
 
-  const renderCommunityCard = ({ item }: { item: Community }) => {
+  // Separate component for community card to use hooks properly
+  const CommunityCard = ({ 
+    item, 
+    index, 
+    fadeAnim, 
+    isMember, 
+    joiningIds, 
+    handleJoin, 
+    handleLeave, 
+    router 
+  }: { 
+    item: Community; 
+    index: number; 
+    fadeAnim: Animated.Value;
+    isMember: (id: string) => boolean;
+    joiningIds: Set<string>;
+    handleJoin: (id: string) => void;
+    handleLeave: (id: string) => void;
+    router: any;
+  }) => {
     const isJoined = isMember(item.id);
     const isJoining = joiningIds.has(item.id);
+    const scaleAnim = React.useRef(new Animated.Value(1)).current; // Start at 1 (no scale)
+    const hasAnimated = React.useRef(false);
+
+    React.useEffect(() => {
+      if (!hasAnimated.current) {
+        scaleAnim.setValue(0.95);
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+          delay: index * 30,
+        }).start();
+        hasAnimated.current = true;
+      }
+    }, []);
 
     const handleCardPress = () => {
       if (isJoined) {
@@ -143,60 +186,61 @@ export default function CommunityScreen() {
     };
 
     return (
-      <TouchableOpacity
-        onPress={handleCardPress}
-        className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm"
-        activeOpacity={0.7}
-      >
-        <View className="flex-row">
-          {/* Community Image/Icon */}
-          <View className="w-16 h-16 rounded-xl bg-primary/10 items-center justify-center mr-4">
+      <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: fadeAnim }}>
+        <TouchableOpacity
+          onPress={handleCardPress}
+          className="bg-white rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm"
+          activeOpacity={0.9}
+        >
+          {/* Community Image/Header */}
+          <View className="h-32 bg-gray-100 relative">
             {item.image_url ? (
               <Image
                 source={{ uri: item.image_url }}
-                className="w-16 h-16 rounded-xl"
+                className="w-full h-full"
                 resizeMode="cover"
               />
             ) : (
-              <Text className="text-3xl">
-                {item.category === 'Farming' && '🌱'}
-                {item.category === 'Marketplace' && '🚜'}
-                {item.category === 'Organic' && '🥕'}
-                {item.category === 'Sustainability' && '♻️'}
-                {item.category === 'Gardening' && '🌳'}
-                {!item.category && '👥'}
-              </Text>
+              <View className="w-full h-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                <Text className="text-5xl">
+                  {item.category === 'Farming' && '🌱'}
+                  {item.category === 'Marketplace' && '🚜'}
+                  {item.category === 'Organic' && '🥕'}
+                  {item.category === 'Sustainability' && '♻️'}
+                  {item.category === 'Gardening' && '🌳'}
+                  {!item.category && '👥'}
+                </Text>
+              </View>
+            )}
+            {item.category && (
+              <View className="absolute top-4 right-4">
+                <View className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full">
+                  <Text className="text-xs font-bold text-primary">{item.category}</Text>
+                </View>
+              </View>
             )}
           </View>
 
           {/* Community Details */}
-          <View className="flex-1">
-            <View className="flex-row items-start justify-between mb-1">
-              <Text className="text-lg font-bold text-gray-900 flex-1" numberOfLines={1}>
-                {item.name}
-              </Text>
-              {item.category && (
-                <View className="bg-primary/10 px-2 py-1 rounded-full ml-2">
-                  <Text className="text-xs font-semibold text-primary">{item.category}</Text>
-                </View>
-              )}
-            </View>
+          <View className="p-5">
+            <Text className="text-xl font-black text-gray-900 mb-2" numberOfLines={1}>
+              {item.name}
+            </Text>
 
             {item.description && (
-              <Text className="text-sm text-gray-600 mb-2" numberOfLines={2}>
+              <Text className="text-sm text-gray-600 mb-4 leading-5" numberOfLines={2}>
                 {item.description}
               </Text>
             )}
 
-            <View className="flex-row items-center justify-between mt-2">
+            <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
-                <Ionicons name="people-outline" size={16} color="#6B7280" />
-                <Text className="text-xs text-gray-600 ml-1">
+                <Ionicons name="people" size={18} color="#6B7280" />
+                <Text className="text-sm font-semibold text-gray-700 ml-2">
                   {item.member_count} {item.member_count === 1 ? 'member' : 'members'}
                 </Text>
               </View>
 
-              {/* Join/Leave Button */}
               <TouchableOpacity
                 onPress={(e) => {
                   e.stopPropagation();
@@ -207,11 +251,12 @@ export default function CommunityScreen() {
                   }
                 }}
                 disabled={isJoining}
-                className={`px-4 py-2 rounded-lg flex-row items-center ${
+                className={`px-5 py-2.5 rounded-2xl flex-row items-center ${
                   isJoined
                     ? 'bg-gray-100'
                     : 'bg-primary'
                 }`}
+                activeOpacity={0.8}
               >
                 {isJoining ? (
                   <ActivityIndicator size="small" color={isJoined ? '#6B7280' : 'white'} />
@@ -219,12 +264,12 @@ export default function CommunityScreen() {
                   <>
                     <Ionicons
                       name={isJoined ? 'checkmark-circle' : 'add-circle'}
-                      size={16}
+                      size={18}
                       color={isJoined ? '#6B7280' : 'white'}
                     />
                     <Text
-                      className={`text-sm font-semibold ml-1 ${
-                        isJoined ? 'text-gray-600' : 'text-white'
+                      className={`text-sm font-bold ml-2 ${
+                        isJoined ? 'text-gray-700' : 'text-white'
                       }`}
                     >
                       {isJoined ? 'Joined' : 'Join'}
@@ -234,19 +279,53 @@ export default function CommunityScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
-  // Filter communities: show those not joined in "Discover Communities"
+  const renderCommunityCard = ({ item, index }: { item: Community; index: number }) => (
+    <CommunityCard
+      item={item}
+      index={index}
+      fadeAnim={fadeAnim}
+      isMember={isMember}
+      joiningIds={joiningIds}
+      handleJoin={handleJoin}
+      handleLeave={handleLeave}
+      router={router}
+    />
+  );
+
   const discoverCommunities = communities.filter((c) => !isMember(c.id));
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      {/* Header */}
+      <View className="bg-white px-6 py-4 border-b border-gray-100">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <Image
+              source={require('@/assets/logos/logo.png')}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+            />
+            <Text className="text-2xl font-black text-gray-900 ml-2">Community</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push('/createCommunity')}
+            className="bg-primary px-4 py-2 rounded-xl flex-row items-center shadow-sm"
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add-circle" size={18} color="white" />
+            <Text className="text-white font-semibold ml-2">Create</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Pill-style Tab Selector */}
       <View className="px-6 pt-6 pb-4">
-        <View className="bg-primary/20 rounded-full p-1" style={{ flexDirection: 'row' }}>
+        <View className="bg-primary/10 rounded-full p-1 flex-row">
           <TouchableOpacity
             onPress={() => setActiveTab('communities')}
             style={{ flex: 1 }}
@@ -259,7 +338,7 @@ export default function CommunityScreen() {
               }`}
             />
             <Text
-              className={`font-extrabold text-lg ${
+              className={`font-black text-base ${
                 activeTab === 'communities' ? 'text-white' : 'text-primary'
               }`}
               numberOfLines={1}
@@ -280,7 +359,7 @@ export default function CommunityScreen() {
               }`}
             />
             <Text
-              className={`font-extrabold text-lg ${
+              className={`font-black text-base ${
                 activeTab === 'messages' ? 'text-white' : 'text-primary'
               }`}
               numberOfLines={1}
@@ -293,17 +372,6 @@ export default function CommunityScreen() {
 
       {activeTab === 'communities' ? (
         <>
-          {/* Create Community Button */}
-          <View className="px-6 pb-4 flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-gray-900">Connect with others</Text>
-            <TouchableOpacity
-              onPress={() => router.push('/createCommunity')}
-              className="bg-white rounded-full p-2 shadow-sm border border-gray-200"
-            >
-              <Ionicons name="add" size={24} color="#22C55E" />
-            </TouchableOpacity>
-          </View>
-
           {loading && communities.length === 0 ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#22C55E" />
@@ -312,17 +380,18 @@ export default function CommunityScreen() {
           ) : (
             <ScrollView
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#22C55E" />
               }
               className="flex-1"
+              showsVerticalScrollIndicator={false}
             >
               {/* My Communities Section */}
               {myCommunities.length > 0 && (
-                <View className="px-4 pt-4">
-                  <Text className="text-lg font-bold text-gray-900 mb-3">My Communities</Text>
-                  {myCommunities.map((community) => (
+                <View className="px-4 pt-2">
+                  <Text className="text-lg font-black text-gray-900 mb-4 px-2">My Communities</Text>
+                  {myCommunities.map((community, index) => (
                     <View key={community.id}>
-                      {renderCommunityCard({ item: community })}
+                      {renderCommunityCard({ item: community, index })}
                     </View>
                   ))}
                 </View>
@@ -330,42 +399,38 @@ export default function CommunityScreen() {
 
               {/* Discover Communities Section */}
               <View className="px-4 pt-4">
-                <Text className="text-lg font-bold text-gray-900 mb-3">
+                <Text className="text-lg font-black text-gray-900 mb-4 px-2">
                   {myCommunities.length > 0 ? 'Discover Communities' : 'Join Communities'}
                 </Text>
 
                 {discoverCommunities.length === 0 ? (
                   <View className="items-center justify-center py-20">
                     <Ionicons name="people-outline" size={64} color="#D1D5DB" />
-                    <Text className="text-lg font-semibold text-gray-400 mt-4">
+                    <Text className="text-lg font-bold text-gray-400 mt-4">
                       {myCommunities.length > 0
                         ? 'No more communities to discover'
                         : 'No communities yet'}
                     </Text>
-                    <Text className="text-sm text-gray-400 mt-2">
-                      Create one to get started!
-                    </Text>
+                    <Text className="text-sm text-gray-400 mt-2">Create one to get started!</Text>
                   </View>
                 ) : (
-                  discoverCommunities.map((community) => (
+                  discoverCommunities.map((community, index) => (
                     <View key={community.id}>
-                      {renderCommunityCard({ item: community })}
+                      {renderCommunityCard({ item: community, index: myCommunities.length + index })}
                     </View>
                   ))
                 )}
               </View>
 
-              {/* Bottom padding */}
               <View className="h-8" />
             </ScrollView>
           )}
         </>
       ) : (
-        // Messages Tab
-        <ScrollView className="flex-1">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* Search Bar */}
           <View className="px-6 pb-4">
-            <View className="bg-primary/10 rounded-full px-4 py-3 flex-row items-center">
+            <View className="bg-gray-100 rounded-2xl px-4 py-3 flex-row items-center">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput
                 className="flex-1 ml-3 text-base text-gray-900"
@@ -375,40 +440,9 @@ export default function CommunityScreen() {
             </View>
           </View>
 
-          {/* Your Communities Messages */}
-          {myCommunities.length > 0 && (
-            <View className="px-6 pb-4">
-              <Text className="text-base font-bold text-gray-900 mb-3">Your Communities</Text>
-              <View className="flex-row gap-3 mb-4">
-                {myCommunities.slice(0, 2).map((community) => (
-                  <TouchableOpacity
-                    key={community.id}
-                    className="flex-1 rounded-2xl overflow-hidden bg-gray-800 h-24"
-                    activeOpacity={0.8}
-                    onPress={() => router.push(`/community/${community.id}`)}
-                  >
-                    <Image
-                      source={{ uri: community.image_url || 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400' }}
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                    <View className="absolute inset-0 bg-black/40 justify-end p-3">
-                      <Text className="text-white font-bold text-sm" numberOfLines={1}>
-                        {community.name}
-                      </Text>
-                      <Text className="text-white/80 text-xs mt-0.5">
-                        Tap to view
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
           {/* Direct Messages */}
           <View className="px-6">
-            <Text className="text-base font-bold text-gray-900 mb-3">Messages</Text>
+            <Text className="text-lg font-black text-gray-900 mb-4">Messages</Text>
 
             {loadingMessages ? (
               <View className="py-10 items-center">
@@ -418,14 +452,11 @@ export default function CommunityScreen() {
             ) : conversations.length === 0 ? (
               <View className="py-10 items-center">
                 <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
-                <Text className="text-lg font-semibold text-gray-400 mt-4">No messages yet</Text>
-                <Text className="text-sm text-gray-400 mt-2">
-                  Start a conversation with someone!
-                </Text>
+                <Text className="text-lg font-bold text-gray-400 mt-4">No messages yet</Text>
+                <Text className="text-sm text-gray-400 mt-2">Start a conversation with someone!</Text>
               </View>
             ) : (
               conversations.map((conversation) => {
-                // Determine the other participant (not the current user)
                 const otherParticipant = conversation.participant_1_id === user?.id
                   ? conversation.participant_2
                   : conversation.participant_1;
@@ -433,30 +464,28 @@ export default function CommunityScreen() {
                 return (
                   <TouchableOpacity
                     key={conversation.id}
-                    className="flex-row items-center py-3 border-b border-gray-100"
-                    activeOpacity={0.7}
+                    className="bg-white rounded-3xl p-4 mb-3 flex-row items-center shadow-sm"
+                    activeOpacity={0.8}
                     onPress={() => router.push(`/messages/${conversation.id}`)}
                   >
-                    {/* Avatar */}
                     <TouchableOpacity
                       activeOpacity={0.8}
-                      className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-3 overflow-hidden"
+                      className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center mr-4 overflow-hidden border-2 border-white shadow-sm"
                       onPress={(event) => handleProfilePress(otherParticipant.id, event)}
                     >
                       {otherParticipant.profile_pic_url ? (
                         <Image
                           source={{ uri: otherParticipant.profile_pic_url }}
-                          className="w-12 h-12 rounded-full"
+                          className="w-full h-full rounded-full"
                           resizeMode="cover"
                         />
                       ) : (
-                        <Text className="text-xl font-bold text-primary">
+                        <Text className="text-xl font-black text-primary">
                           {otherParticipant.name?.charAt(0).toUpperCase() || '?'}
                         </Text>
                       )}
                     </TouchableOpacity>
 
-                    {/* Message Info */}
                     <View className="flex-1">
                       <View className="flex-row items-center justify-between mb-1">
                         <TouchableOpacity
@@ -464,20 +493,20 @@ export default function CommunityScreen() {
                           className="flex-row items-center flex-1"
                           onPress={(event) => handleProfilePress(otherParticipant.id, event)}
                         >
-                          <Text className="text-base font-semibold text-gray-900">
+                          <Text className="text-base font-black text-gray-900">
                             {otherParticipant.name}
                           </Text>
                           {otherParticipant.is_verified_seller && (
-                            <Ionicons name="checkmark-circle" size={14} color="#22C55E" style={{ marginLeft: 4 }} />
+                            <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
                           )}
                         </TouchableOpacity>
                         {conversation.last_message_at && (
-                          <Text className="text-xs text-gray-400">
+                          <Text className="text-xs text-gray-500">
                             {new Date(conversation.last_message_at).toLocaleDateString()}
                           </Text>
                         )}
                       </View>
-                      <Text className="text-sm text-gray-500 mt-0.5" numberOfLines={1}>
+                      <Text className="text-sm text-gray-600" numberOfLines={1}>
                         {conversation.last_message?.text || 'No messages yet'}
                       </Text>
                     </View>
