@@ -82,7 +82,7 @@ export default function LoginScreen() {
   if (loading) {
     return (
       <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+        <ActivityIndicator size="large" color="#8FAA7C" />
       </View>
     );
   }
@@ -140,7 +140,7 @@ export default function LoginScreen() {
           disabled={isSigningIn}
         >
           {isSigningIn ? (
-            <ActivityIndicator size="small" color="#22C55E" />
+            <ActivityIndicator size="small" color="#8FAA7C" />
           ) : (
             <>
               <Ionicons name="logo-google" size={24} color="#EA4335" />
@@ -186,7 +186,7 @@ export default function LoginScreen() {
             >
               <View className="flex-row items-center mb-2">
                 <View className="w-12 h-12 rounded-full bg-green-100 items-center justify-center">
-                  <Ionicons name="cart" size={24} color="#22C55E" />
+                  <Ionicons name="cart" size={24} color="#8FAA7C" />
                 </View>
                 <Text className="text-xl font-bold text-gray-900 ml-3">I'm a Buyer</Text>
               </View>

@@ -176,8 +176,8 @@ export default function CheckoutScreen() {
 
   if (fetchingProduct) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading product...</Text>
       </SafeAreaView>
     );
@@ -185,7 +185,7 @@ export default function CheckoutScreen() {
 
   if (!product) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Product Not Found</Text>
         <TouchableOpacity
@@ -204,9 +204,9 @@ export default function CheckoutScreen() {
   const sellerReceives = totalPrice - platformFee - stripeFee;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
+      <View className="bg-background px-4 py-3 border-b border-gray-100 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
           className="p-2 -ml-2"
@@ -404,7 +404,7 @@ export default function CheckoutScreen() {
           <View className="bg-white rounded-3xl p-8 mx-6 items-center shadow-2xl">
             {/* Success Icon */}
             <View className="bg-green-100 rounded-full p-6 mb-6">
-              <Ionicons name="checkmark-circle" size={80} color="#22C55E" />
+              <Ionicons name="checkmark-circle" size={80} color="#8FAA7C" />
             </View>
 
             {/* Success Message */}

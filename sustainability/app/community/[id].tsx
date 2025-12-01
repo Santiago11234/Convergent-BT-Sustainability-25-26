@@ -279,8 +279,8 @@ export default function CommunityDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading community...</Text>
       </SafeAreaView>
     );
@@ -288,7 +288,7 @@ export default function CommunityDetailScreen() {
 
   if (!community || !isMember(community.id)) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="lock-closed-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Access Denied</Text>
         <Text className="text-sm text-gray-600 mt-2 text-center">
@@ -305,9 +305,9 @@ export default function CommunityDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-200">
+      <View className="bg-background px-4 py-3 border-b border-gray-200">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <Ionicons name="arrow-back" size={24} color="#374151" />
@@ -409,7 +409,7 @@ export default function CommunityDetailScreen() {
                     <Ionicons
                       name="chatbubbles-outline"
                       size={18}
-                      color={selectedChannel?.id === channel.id ? '#22C55E' : '#6B7280'}
+                      color={selectedChannel?.id === channel.id ? '#8FAA7C' : '#6B7280'}
                     />
                     <Text
                       className={`ml-3 text-sm flex-1 ${
@@ -516,7 +516,7 @@ export default function CommunityDetailScreen() {
                 ListEmptyComponent={
                   loadingMessages ? (
                     <View className="py-12 items-center">
-                      <ActivityIndicator size="small" color="#22C55E" />
+                      <ActivityIndicator size="small" color="#8FAA7C" />
                     </View>
                   ) : (
                     <View className="py-12 items-center">

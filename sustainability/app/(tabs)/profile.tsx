@@ -242,9 +242,9 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#22C55E" />
+          <ActivityIndicator size="large" color="#8FAA7C" />
           <Text className="text-gray-600 mt-4">Loading profile...</Text>
         </View>
       </SafeAreaView>
@@ -252,9 +252,9 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-100 flex-row items-center justify-between">
+      <View className="bg-background px-6 py-4 border-b border-gray-100 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Image
             source={require('@/assets/logos/logo.png')}
@@ -369,7 +369,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <View className="w-12 h-12 rounded-2xl bg-primary/10 items-center justify-center mr-4">
-                <Ionicons name="person-outline" size={24} color="#22C55E" />
+                <Ionicons name="person-outline" size={24} color="#8FAA7C" />
               </View>
               <Text className="text-base font-bold text-gray-900 flex-1">Edit Profile</Text>
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />

@@ -388,8 +388,8 @@ export default function FeedScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      <View className="bg-white px-4 py-3 border-b border-gray-100">
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <View className="bg-background px-4 py-3 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-3xl font-black text-gray-900">Feed</Text>
           <TouchableOpacity 
@@ -404,7 +404,7 @@ export default function FeedScreen() {
 
       {loading && !refreshing ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#22C55E" />
+          <ActivityIndicator size="large" color="#8FAA7C" />
           <Text className="text-gray-600 mt-4">Loading posts...</Text>
         </View>
       ) : posts.length === 0 ? (

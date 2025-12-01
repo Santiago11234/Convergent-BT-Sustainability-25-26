@@ -1244,7 +1244,7 @@ export default function CreatePostScreen() {
               <View className="h-72 rounded-2xl overflow-hidden bg-black mb-4 border-2 border-gray-200 relative">
                 {hasCameraPermission === null && (
                   <View className="flex-1 items-center justify-center">
-                    <ActivityIndicator color="#22C55E" size="large" />
+                    <ActivityIndicator color="#8FAA7C" size="large" />
                     <Text className="text-sm text-gray-500 mt-2">Initializing camera...</Text>
                   </View>
                 )}
@@ -1498,7 +1498,7 @@ export default function CreatePostScreen() {
           {/* Category */}
           <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
             <View className="flex-row items-center mb-4">
-              <Ionicons name="pricetag" size={24} color="#22C55E" />
+              <Ionicons name="pricetag" size={24} color="#8FAA7C" />
               <Text className="text-xl font-bold text-gray-800 ml-3">Category</Text>
             </View>
             <Text className="text-lg text-gray-700 text-center">{postData.category}</Text>
@@ -1507,7 +1507,7 @@ export default function CreatePostScreen() {
           {/* Location */}
           <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
             <View className="flex-row items-center mb-4">
-              <Ionicons name="location" size={24} color="#22C55E" />
+              <Ionicons name="location" size={24} color="#8FAA7C" />
               <Text className="text-xl font-bold text-gray-800 ml-3">Location</Text>
             </View>
             <Text className="text-lg text-gray-700 text-center">{postData.location || 'Not set'}</Text>
@@ -1520,7 +1520,7 @@ export default function CreatePostScreen() {
           {postData.availableQuantity && (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
-                <Ionicons name="basket" size={24} color="#22C55E" />
+                <Ionicons name="basket" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Available Quantity</Text>
               </View>
               <Text className="text-lg text-gray-700 text-center">{postData.availableQuantity} {postData.unit}</Text>
@@ -1531,7 +1531,7 @@ export default function CreatePostScreen() {
           {selectedPaymentMethods.length > 0 && (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
-                <Ionicons name="card" size={24} color="#22C55E" />
+                <Ionicons name="card" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Payment Methods</Text>
               </View>
               <View className="flex-row flex-wrap gap-2 justify-center">
@@ -1553,7 +1553,7 @@ export default function CreatePostScreen() {
           {postData.images.length > 0 && (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
-                <Ionicons name="camera" size={24} color="#22C55E" />
+                <Ionicons name="camera" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Photos ({postData.images.length})</Text>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-3">
@@ -1568,7 +1568,7 @@ export default function CreatePostScreen() {
           {postData.tags.length > 0 && (
             <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
-                <Ionicons name="pricetag" size={24} color="#22C55E" />
+                <Ionicons name="pricetag" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Tags ({postData.tags.length})</Text>
               </View>
               <View className="flex-row flex-wrap gap-2 justify-center">
@@ -1584,7 +1584,7 @@ export default function CreatePostScreen() {
           {verificationResult && (
             <View className="bg-white rounded-2xl p-6 shadow-sm">
               <View className="flex-row items-center mb-4">
-                <Ionicons name="shield-checkmark" size={24} color="#22C55E" />
+                <Ionicons name="shield-checkmark" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">AI Verification</Text>
               </View>
               <View className="flex-row justify-between mb-3">
@@ -1625,9 +1625,9 @@ export default function CreatePostScreen() {
 
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
+      <View className="bg-background px-4 pt-4 pb-3 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity onPress={() => router.push('/(tabs)/marketplace')}>
             <Ionicons name="arrow-back" size={24} color="#374151" />

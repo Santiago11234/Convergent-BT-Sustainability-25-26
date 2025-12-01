@@ -46,7 +46,7 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <Animated.View
         style={{
           opacity: fadeAnim,
@@ -55,7 +55,7 @@ export default function HomeScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-4 pb-6 bg-white">
+        <View className="px-6 pt-4 pb-6 bg-background">
           <View className="flex-row items-center">
             <Image
               source={require('@/assets/logos/logo.png')}

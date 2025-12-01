@@ -161,7 +161,7 @@ export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-00
           onPress={sendMessage}
           disabled={!inputText.trim() || isLoading}
         >
-          <Ionicons name="send" size={24} color={inputText.trim() ? '#22C55E' : '#999'} />
+          <Ionicons name="send" size={24} color={inputText.trim() ? '#8FAA7C' : '#999'} />
         </TouchableOpacity>
       </View>
     </View>
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#22C55E',
+    backgroundColor: '#8FAA7C',
   },
   assistantMessage: {
     alignSelf: 'flex-start',

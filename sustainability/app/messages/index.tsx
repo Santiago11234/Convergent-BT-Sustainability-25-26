@@ -90,7 +90,7 @@ export default function MessagesScreen() {
                   {otherUser.name}
                 </Text>
                 {otherUser.is_verified_seller && (
-                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
+                  <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" style={{ marginLeft: 4 }} />
                 )}
               </TouchableOpacity>
               <Text className="text-xs text-gray-500">
@@ -121,8 +121,8 @@ export default function MessagesScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading conversations...</Text>
       </SafeAreaView>
     );
@@ -130,7 +130,7 @@ export default function MessagesScreen() {
 
   if (error) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Error Loading Messages</Text>
         <Text className="text-sm text-gray-600 mt-2 text-center">{error}</Text>
@@ -139,9 +139,9 @@ export default function MessagesScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="px-4 py-4 border-b border-gray-100">
+      <View className="px-4 py-4 border-b border-gray-100 bg-background">
         <Text className="text-3xl font-black text-gray-900">Messages</Text>
       </View>
 

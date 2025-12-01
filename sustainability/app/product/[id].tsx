@@ -85,8 +85,8 @@ export default function ProductDetailsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading product...</Text>
       </SafeAreaView>
     );
@@ -94,7 +94,7 @@ export default function ProductDetailsScreen() {
 
   if (error || !product) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Error Loading Product</Text>
         <Text className="text-sm text-gray-600 mt-2 text-center">{error || 'Product not found'}</Text>
@@ -109,9 +109,9 @@ export default function ProductDetailsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 bg-background">
         <TouchableOpacity
           onPress={() => router.back()}
           className="p-2 -ml-2"
@@ -276,7 +276,7 @@ export default function ProductDetailsScreen() {
                   <View className="flex-row items-center">
                     <Text className="text-lg font-bold text-gray-900">{product.seller.name}</Text>
                     {product.seller.is_verified_seller && (
-                      <Ionicons name="checkmark-circle" size={18} color="#22C55E" className="ml-1" />
+                      <Ionicons name="checkmark-circle" size={18} color="#8FAA7C" className="ml-1" />
                     )}
                   </View>
                   <View className="flex-row items-center mt-1">
@@ -339,7 +339,7 @@ export default function ProductDetailsScreen() {
                 <Ionicons name="location" size={20} color="#6B7280" />
                 <Text className="flex-1 text-gray-700 text-sm ml-2">{product.pickup_location}</Text>
                 <TouchableOpacity onPress={openMaps}>
-                  <Ionicons name="navigate" size={20} color="#22C55E" />
+                  <Ionicons name="navigate" size={20} color="#8FAA7C" />
                 </TouchableOpacity>
               </View>
             </View>

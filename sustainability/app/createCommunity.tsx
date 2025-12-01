@@ -141,9 +141,9 @@ export default function CreateCommunityScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
+      <View className="bg-background px-4 pt-4 pb-3 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
           <View className="w-24">
             <TouchableOpacity onPress={() => router.back()}>

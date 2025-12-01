@@ -57,7 +57,7 @@ export default function FollowingListScreen() {
             {item.name || item.email?.split('@')[0] || 'Unknown User'}
           </Text>
           {item.is_verified_seller && (
-            <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
+            <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" style={{ marginLeft: 4 }} />
           )}
         </View>
         {item.bio && (
@@ -72,15 +72,15 @@ export default function FollowingListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading following...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
       <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 mr-2">

@@ -184,9 +184,9 @@ export default function MarketplaceScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-100">
+      <View className="bg-background px-6 py-4 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
           <View className="flex-row items-center">
             <Image
@@ -350,7 +350,7 @@ export default function MarketplaceScreen() {
 
         {loading ? (
           <View className="items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#22C55E" />
+            <ActivityIndicator size="large" color="#8FAA7C" />
             <Text className="text-gray-600 mt-4">Loading products...</Text>
           </View>
         ) : (
@@ -408,7 +408,7 @@ export default function MarketplaceScreen() {
                     <Ionicons
                       name={option.icon as any}
                       size={20}
-                      color={sortBy === option.value ? '#22C55E' : '#6B7280'}
+                      color={sortBy === option.value ? '#8FAA7C' : '#6B7280'}
                     />
                     <Text className={`ml-3 font-semibold ${
                       sortBy === option.value ? 'text-primary' : 'text-gray-700'
@@ -417,7 +417,7 @@ export default function MarketplaceScreen() {
                     </Text>
                   </View>
                   {sortBy === option.value && (
-                    <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                    <Ionicons name="checkmark-circle" size={24} color="#8FAA7C" />
                   )}
                 </TouchableOpacity>
               ))}

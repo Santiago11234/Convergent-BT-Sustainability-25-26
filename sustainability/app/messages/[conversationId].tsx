@@ -66,8 +66,8 @@ export default function ChatScreen() {
 
   if (loading || loadingUser) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading chat...</Text>
       </SafeAreaView>
     );
@@ -75,7 +75,7 @@ export default function ChatScreen() {
 
   if (error || !otherUser) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Error Loading Chat</Text>
         <Text className="text-sm text-gray-600 mt-2 text-center">{error || 'User not found'}</Text>
@@ -90,14 +90,14 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         {/* Header */}
-        <View className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-white">
+        <View className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-background">
           <TouchableOpacity
             onPress={() => router.back()}
             className="p-2 -ml-2 mr-2"
@@ -133,7 +133,7 @@ export default function ChatScreen() {
               <View className="flex-row items-center">
                 <Text className="text-lg font-bold text-gray-900">{otherUser.name}</Text>
                 {otherUser.is_verified_seller && (
-                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
+                  <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" style={{ marginLeft: 4 }} />
                 )}
               </View>
             {otherUser.seller_rating && otherUser.seller_rating > 0 ? (

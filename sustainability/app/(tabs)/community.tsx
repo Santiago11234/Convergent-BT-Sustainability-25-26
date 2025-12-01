@@ -300,9 +300,9 @@ export default function CommunityScreen() {
   const discoverCommunities = communities.filter((c) => !isMember(c.id));
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-6 py-4 border-b border-gray-100">
+      <View className="bg-background px-6 py-4 border-b border-gray-100">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Image
@@ -374,13 +374,13 @@ export default function CommunityScreen() {
         <>
           {loading && communities.length === 0 ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color="#22C55E" />
+              <ActivityIndicator size="large" color="#8FAA7C" />
               <Text className="text-gray-600 mt-4">Loading communities...</Text>
             </View>
           ) : (
             <ScrollView
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#22C55E" />
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#8FAA7C" />
               }
               className="flex-1"
               showsVerticalScrollIndicator={false}
@@ -446,7 +446,7 @@ export default function CommunityScreen() {
 
             {loadingMessages ? (
               <View className="py-10 items-center">
-                <ActivityIndicator size="large" color="#22C55E" />
+                <ActivityIndicator size="large" color="#8FAA7C" />
                 <Text className="text-gray-600 mt-4">Loading messages...</Text>
               </View>
             ) : conversations.length === 0 ? (
@@ -497,7 +497,7 @@ export default function CommunityScreen() {
                             {otherParticipant.name}
                           </Text>
                           {otherParticipant.is_verified_seller && (
-                            <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginLeft: 4 }} />
+                            <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" style={{ marginLeft: 4 }} />
                           )}
                         </TouchableOpacity>
                         {conversation.last_message_at && (

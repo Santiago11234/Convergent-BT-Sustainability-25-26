@@ -211,8 +211,8 @@ export default function PublicProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#22C55E" />
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#8FAA7C" />
         <Text className="text-gray-600 mt-4">Loading profile...</Text>
       </SafeAreaView>
     );
@@ -220,7 +220,7 @@ export default function PublicProfileScreen() {
 
   if (error || !profile) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Unable to load profile</Text>
         {error && <Text className="text-sm text-gray-600 mt-2 text-center">{error}</Text>}
@@ -235,7 +235,7 @@ export default function PublicProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
       <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
         <TouchableOpacity onPress={handleBack} className="p-2 -ml-2 mr-2">
@@ -339,7 +339,7 @@ export default function PublicProfileScreen() {
           </View>
 
           {listings.length === 0 ? (
-            <View className="items-center justify-center py-8 bg-gray-50 rounded-xl">
+            <View className="items-center justify-center py-8 bg-background rounded-xl">
               <Ionicons name="cube-outline" size={40} color="#D1D5DB" />
               <Text className="text-sm text-gray-500 mt-3">No active sell orders</Text>
             </View>

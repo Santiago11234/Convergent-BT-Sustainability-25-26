@@ -105,9 +105,9 @@ export default function SellerScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-100">
+      <View className="bg-background px-4 pt-4 pb-3 border-b border-gray-100">
         <Text className="text-3xl font-black text-gray-900 mb-2">My Selling</Text>
         <Text className="text-sm text-gray-600">Manage your products and track your sales</Text>
       </View>
