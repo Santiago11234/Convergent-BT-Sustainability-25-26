@@ -98,6 +98,23 @@ export default function MarketplaceScreen() {
       }
     }, []);
 
+    // Render star rating
+    const renderStars = () => {
+      const rating = 4.5; // You can make this dynamic based on item.rating
+      return (
+        <View className="flex-row items-center">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Ionicons
+              key={star}
+              name={star <= Math.floor(rating) ? "star" : star === Math.ceil(rating) ? "star-half" : "star-outline"}
+              size={16}
+              color="#F59E0B"
+            />
+          ))}
+        </View>
+      );
+    };
+
     return (
       <Animated.View
         style={{
@@ -106,71 +123,77 @@ export default function MarketplaceScreen() {
         }}
       >
         <TouchableOpacity
-          className="rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm border border-gray-200"
+          className="bg-[#F5F1E8] rounded-2xl mb-3 mx-4 shadow-sm flex-row overflow-hidden"
           activeOpacity={0.9}
           onPress={() => router.push(`/product/${item.id}`)}
         >
-          {/* Product Image */}
-          <View className="h-48 bg-background-light relative">
+          {/* Product Image - Left Side */}
+          <View className="w-32 h-32 bg-background-light relative">
             {item.images && item.images.length > 0 && item.images[0] ? (
               <Image
                 source={{ uri: item.images[0] }}
-                className="w-full h-full"
+                className="w-full h-full rounded-2xl"
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-full h-full items-center justify-center bg-gradient-to-br from-green-50 to-primary/10">
-                <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+              <View className="w-full h-full items-center justify-center bg-gray-200 rounded-2xl">
+                <Ionicons name="image-outline" size={40} color="#9CA3AF" />
               </View>
             )}
-            {/* Stock Badge */}
-            <View className="absolute top-4 right-4">
-              <View className={`px-3 py-1.5 rounded-full ${
-                (item.quantity_available || 0) < 10 ? 'bg-orange-500' : 'bg-primary'
-              }`}>
-                <Text className="text-white font-bold text-xs">
-                  {item.quantity_available || 0} in stock
-                </Text>
-              </View>
-            </View>
           </View>
 
-          {/* Product Details */}
-          <View className="p-5">
-            <View className="flex-row items-start justify-between mb-2">
-              <Text className="text-xl font-bold text-gray-900 flex-1 mr-2" numberOfLines={2}>
-                {item.title || 'Untitled Product'}
+          {/* Product Details - Right Side */}
+          <View className="flex-1 p-4 justify-between">
+            {/* Top Section */}
+            <View>
+              <View className="flex-row items-start justify-between mb-1">
+                <Text className="text-lg font-bold text-gray-900 flex-1 mr-2" numberOfLines={2}>
+                  {item.title || 'Untitled Product'}
+                </Text>
+                {/* Share Button */}
+                <TouchableOpacity
+                  className="p-1"
+                  activeOpacity={0.7}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    // Share functionality
+                  }}
+                >
+                  <Ionicons name="share-outline" size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Price */}
+              <Text className="text-base font-semibold text-gray-700 mb-2">
+                ${(item.price || 0).toFixed(2)} - ${((item.price || 0) * 1.35).toFixed(2)}
               </Text>
+
+              {/* Seller */}
+              <TouchableOpacity
+                className="flex-row items-center mb-2"
+                activeOpacity={0.7}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleSellerPress(item.seller?.id);
+                }}
+              >
+                <Text className="text-sm text-gray-600">By {item.seller?.name || 'Unknown Seller'}</Text>
+                <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" className="ml-1" style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              className="flex-row items-center mb-3"
-              activeOpacity={0.7}
-              onPress={() => handleSellerPress(item.seller?.id)}
-            >
-              <View className="w-6 h-6 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
-                {item.seller?.profile_pic_url ? (
-                  <Image
-                    source={{ uri: item.seller.profile_pic_url }}
-                    className="w-full h-full rounded-full"
-                  />
-                ) : (
-                  <Ionicons name="person" size={12} color="#9CA3AF" />
-                )}
-              </View>
-              <Text className="text-sm font-semibold text-gray-700">{item.seller?.name || 'Unknown Seller'}</Text>
-            </TouchableOpacity>
-
+            {/* Bottom Section */}
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <Ionicons name="location-outline" size={14} color="#6B7280" />
-                <Text className="text-xs text-gray-600 ml-1">{(item.distance || 0).toFixed(1)} mi</Text>
-              </View>
-              <View className="flex-row items-baseline">
-                <Text className="text-2xl font-black text-primary">
-                  ${(item.price || 0).toFixed(2)}
+                <Text className="text-xs text-gray-600 ml-1">
+                  {Math.round((item.distance || 0) * 1.6)} min.
                 </Text>
-                <Text className="text-sm text-gray-500 ml-1">/{item.unit_of_measure || 'unit'}</Text>
+              </View>
+
+              <View>
+                <Text className="text-xs text-gray-600 mb-1">Rating</Text>
+                {renderStars()}
               </View>
             </View>
           </View>
