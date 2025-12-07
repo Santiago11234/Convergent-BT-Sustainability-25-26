@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Alert, ScrollView, Ima
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
 // import { useStripe } from '@stripe/stripe-react-native'; // Commented out - Stripe to be implemented later
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -176,8 +177,8 @@ export default function CheckoutScreen() {
 
   if (fetchingProduct) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator size="large" color="#8FAA7C" />
+      <SafeAreaView className="flex-1 bg-[#F5F1E8] items-center justify-center">
+        <ActivityIndicator size="large" color="#4A6B3C" />
         <Text className="text-gray-600 mt-4">Loading product...</Text>
       </SafeAreaView>
     );
@@ -185,11 +186,11 @@ export default function CheckoutScreen() {
 
   if (!product) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+      <SafeAreaView className="flex-1 bg-[#F5F1E8] items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
         <Text className="text-lg font-semibold text-gray-900 mt-4">Product Not Found</Text>
         <TouchableOpacity
-          className="mt-6 bg-primary px-6 py-3 rounded-xl"
+          className="mt-6 bg-[#4A6B3C] px-6 py-3 rounded-xl"
           onPress={() => router.back()}
         >
           <Text className="text-white font-semibold">Go Back</Text>
@@ -204,9 +205,9 @@ export default function CheckoutScreen() {
   const sellerReceives = totalPrice - platformFee - stripeFee;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F5F1E8]" edges={['top']}>
       {/* Header */}
-      <View className="bg-background px-4 py-3 border-b border-gray-100 flex-row items-center">
+      <View className="bg-[#F5F1E8] px-4 py-3 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
           className="p-2 -ml-2"
@@ -218,11 +219,11 @@ export default function CheckoutScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Product Summary */}
-        <View className="bg-background-light p-4 mb-3">
+        <View className="p-5 mb-3">
           <Text className="text-sm font-semibold text-gray-500 mb-3">ORDER SUMMARY</Text>
           <View className="flex-row">
             {/* Product Image */}
-            <View className="w-20 h-20 rounded-xl bg-background-light overflow-hidden mr-3">
+            <View className="w-20 h-20 rounded-xl bg-gray-200 overflow-hidden mr-3">
               {product.images && product.images.length > 0 && product.images[0] ? (
                 <Image
                   source={{ uri: product.images[0] }}
@@ -230,7 +231,7 @@ export default function CheckoutScreen() {
                   resizeMode="cover"
                 />
               ) : (
-                <View className="w-full h-full items-center justify-center bg-green-50">
+                <View className="w-full h-full items-center justify-center bg-gray-200">
                   <Ionicons name="image-outline" size={32} color="#9CA3AF" />
                 </View>
               )}
@@ -257,10 +258,10 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Quantity Selector */}
-        <View className="bg-background-light p-4 mb-3">
+        <View className="px-5 mb-4">
           <Text className="text-sm font-semibold text-gray-500 mb-3">QUANTITY</Text>
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center bg-background-light rounded-xl">
+            <View className="flex-row items-center bg-gray-200 rounded-xl">
               <TouchableOpacity
                 onPress={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1}
@@ -292,7 +293,7 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Price Breakdown */}
-        <View className="bg-background-light p-4 mb-3">
+        <View className="px-5 mb-4">
           <Text className="text-sm font-semibold text-gray-500 mb-3">PRICE BREAKDOWN</Text>
 
           <View className="flex-row justify-between mb-2">
@@ -303,7 +304,7 @@ export default function CheckoutScreen() {
           <View className="flex-row justify-between mb-2">
             <View className="flex-row items-center">
               <Text className="text-gray-700">Platform Fee</Text>
-              <View className="ml-1 bg-background-light px-2 py-0.5 rounded">
+              <View className="ml-1 bg-gray-200 px-2 py-0.5 rounded">
                 <Text className="text-xs text-gray-600">10%</Text>
               </View>
             </View>
@@ -315,85 +316,84 @@ export default function CheckoutScreen() {
             <Text className="text-gray-900">~${stripeFee.toFixed(2)}</Text>
           </View>
 
-          <View className="border-t border-gray-200 pt-3 flex-row justify-between">
+          <View className="border-t border-gray-300 pt-3 flex-row justify-between mb-3">
             <Text className="text-lg font-bold text-gray-900">Total</Text>
-            <Text className="text-2xl font-bold text-primary">${totalPrice.toFixed(2)}</Text>
+            <Text className="text-2xl font-bold text-[#4A6B3C]">${totalPrice.toFixed(2)}</Text>
           </View>
 
-          <View className="mt-3 p-3 bg-green-50 rounded-lg">
+          <View className="p-3 bg-[#E0D3B4] rounded-lg">
             <View className="flex-row items-center">
-              <Ionicons name="information-circle" size={16} color="#16A34A" />
-              <Text className="text-xs text-green-700 ml-1 flex-1">
+              <Ionicons name="information-circle" size={16} color="#563D1F" />
+              <Text className="text-xs text-[#563D1F] ml-1 flex-1">
                 Seller receives: ${sellerReceives.toFixed(2)} after fees
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Delivery Method */}
-        {product.delivery_options && product.delivery_options.length > 0 && (
-          <View className="bg-background-light p-4 mb-3">
-            <Text className="text-sm font-semibold text-gray-500 mb-3">DELIVERY OPTIONS</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {product.delivery_options.map((option, index) => (
-                <View key={index} className="flex-row items-center bg-background-light px-3 py-2 rounded-lg">
-                  <Ionicons
-                    name={option === 'pickup' ? 'basket-outline' : option === 'local_delivery' ? 'car-outline' : 'airplane-outline'}
-                    size={16}
-                    color="#6B7280"
-                  />
-                  <Text className="text-gray-700 font-medium text-sm ml-2 capitalize">
-                    {option.replace('_', ' ')}
-                  </Text>
-                </View>
-              ))}
+        {/* Pickup Location Map */}
+        {product.pickup_location && (
+          <View className="px-5 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-1">Pickup Location</Text>
+            <Text className="text-sm text-gray-600 mb-4">Address</Text>
+            <View className="rounded-2xl overflow-hidden h-64 mb-3">
+              <MapView
+                style={{ width: '100%', height: '100%' }}
+                initialRegion={{
+                  latitude: product.seller.location_lat || 37.78825,
+                  longitude: product.seller.location_long || -122.4324,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
+                }}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: product.seller.location_lat || 37.78825,
+                    longitude: product.seller.location_long || -122.4324,
+                  }}
+                  title={product.seller.name}
+                  description={product.pickup_location}
+                />
+              </MapView>
             </View>
-            <Text className="text-xs text-gray-500 mt-2">
-              You can arrange delivery details with the seller after payment
-            </Text>
+            <View className="flex-row items-start">
+              <Ionicons name="location" size={20} color="#6B7280" />
+              <Text className="flex-1 text-gray-700 text-sm ml-2">{product.pickup_location}</Text>
+            </View>
           </View>
         )}
 
-        {/* Important Info */}
-        <View className="bg-blue-50 p-4 mx-4 mb-4 rounded-xl">
-          <View className="flex-row items-start">
-            <Ionicons name="shield-checkmark" size={20} color="#3B82F6" />
-            <View className="flex-1 ml-3">
-              <Text className="text-sm font-semibold text-blue-900 mb-1">Secure Payment</Text>
-              <Text className="text-xs text-blue-700">
-                Your payment is processed securely through Stripe. The seller will be notified once payment is confirmed.
-              </Text>
-            </View>
-          </View>
-        </View>
 
         <View className="h-24" />
       </ScrollView>
 
       {/* Bottom Payment Button */}
-      <View className="bg-background-light border-t border-gray-200 px-4 py-3">
-        <TouchableOpacity
-          onPress={handlePayment}
-          disabled={loading || quantity < 1}
-          className={`py-4 rounded-xl items-center ${
-            loading || quantity < 1 ? 'bg-gray-300' : 'bg-primary'
-          }`}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <View className="flex-row items-center">
-              <Ionicons name="card-outline" size={24} color="white" />
-              <Text className="text-white font-bold text-lg ml-2">
-                Pay ${totalPrice.toFixed(2)}
+      <SafeAreaView edges={['bottom']} className="bg-[#F5F1E8]">
+        <View className="px-5 py-4">
+          <TouchableOpacity
+            onPress={handlePayment}
+            disabled={loading || quantity < 1}
+            className={`py-4 rounded-full items-center ${
+              loading || quantity < 1 ? 'bg-gray-300' : 'bg-[#4A6B3C]'
+            }`}
+            style={{
+              shadowColor: '#3B82F6',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
+            }}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white font-bold text-lg">
+                Confirm Purchase
               </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <Text className="text-xs text-gray-500 text-center mt-2">
-          By completing this purchase, you agree to our Terms of Service
-        </Text>
-      </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
       {/* Success Modal */}
       {showSuccess && (
@@ -401,10 +401,10 @@ export default function CheckoutScreen() {
           style={{ opacity: fadeAnim }}
           className="absolute inset-0 bg-black/50 items-center justify-center"
         >
-          <View className="bg-background-light rounded-3xl p-8 mx-6 items-center shadow-2xl">
+          <View className="bg-white rounded-3xl p-8 mx-6 items-center shadow-2xl">
             {/* Success Icon */}
             <View className="bg-green-100 rounded-full p-6 mb-6">
-              <Ionicons name="checkmark-circle" size={80} color="#8FAA7C" />
+              <Ionicons name="checkmark-circle" size={80} color="#4A6B3C" />
             </View>
 
             {/* Success Message */}
@@ -417,16 +417,15 @@ export default function CheckoutScreen() {
             </Text>
 
             {/* Pickup Details */}
-            <View className="bg-blue-50 rounded-2xl p-6 w-full mb-6">
-              <Text className="text-base font-bold text-blue-900 mb-4">
+            <View className="bg-green-50 rounded-2xl p-6 w-full mb-6">
+              <Text className="text-base font-bold text-[#4A6B3C] mb-4">
                 Remember to pickup at:
               </Text>
 
               <View className="flex-row items-start">
-                <Ionicons name="location" size={24} color="#3B82F6" className="mt-1" />
+                <Ionicons name="location" size={24} color="#4A6B3C" className="mt-1" />
                 <View className="flex-1 ml-3">
-                  
-                  <Text className="text-base text-blue-800">
+                  <Text className="text-base text-gray-800">
                     {product?.pickup_location || product?.seller?.address || 'Contact seller for pickup details'}
                   </Text>
                 </View>
@@ -439,7 +438,7 @@ export default function CheckoutScreen() {
                 setShowSuccess(false);
                 router.back();
               }}
-              className="bg-primary px-8 py-5 rounded-xl w-full items-center mb-3"
+              className="bg-[#4A6B3C] px-8 py-5 rounded-full w-full items-center mb-3"
             >
               <Text className="text-white font-bold text-lg">
                 Continue Shopping
@@ -451,7 +450,7 @@ export default function CheckoutScreen() {
                 setShowSuccess(false);
                 router.replace('/(tabs)/profile');
               }}
-              className="bg-background-light px-8 py-5 rounded-xl w-full items-center"
+              className="bg-gray-200 px-8 py-5 rounded-full w-full items-center"
             >
               <Text className="text-gray-700 font-semibold text-lg">
                 View My Orders

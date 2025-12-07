@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Dimensions, Linking } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Dimensions, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker } from 'react-native-maps';
 import { ProductWithSeller } from '@/types/database.types';
 import { supabase } from '@/lib/supabase';
 import { useConversations } from '@/hooks/useConversations';
@@ -21,10 +20,26 @@ export default function ProductDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [messagingLoading, setMessagingLoading] = useState(false);
+  const [message, setMessage] = useState('Is this still available?');
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProductDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (product) {
+      // Initialize tags from product data
+      const initialTags = [];
+      if (product.growing_method) {
+        initialTags.push(product.growing_method.charAt(0).toUpperCase() + product.growing_method.slice(1));
+      }
+      // Add a default location tag
+      initialTags.push('Fremont');
+      setTags(initialTags);
+    }
+  }, [product]);
 
   const fetchProductDetails = async () => {
     try {
@@ -47,13 +62,6 @@ export default function ProductDetailsScreen() {
       setError('Failed to load product details');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const openMaps = () => {
-    if (product?.pickup_location) {
-      const url = `https://maps.google.com/?q=${encodeURIComponent(product.pickup_location)}`;
-      Linking.openURL(url);
     }
   };
 
@@ -83,6 +91,34 @@ export default function ProductDetailsScreen() {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+    await handleMessageSeller();
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const toggleFollow = () => {
+    setIsFollowing(!isFollowing);
+  };
+
+  const renderStars = (rating: number) => {
+    return (
+      <View className="flex-row items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Ionicons
+            key={star}
+            name={star <= Math.floor(rating) ? "star" : star === Math.ceil(rating) ? "star-half" : "star-outline"}
+            size={14}
+            color="#F59E0B"
+          />
+        ))}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center">
@@ -109,22 +145,8 @@ export default function ProductDetailsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 bg-background">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-2 -ml-2"
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900">Product Details</Text>
-        <TouchableOpacity className="p-2 -mr-2">
-          <Ionicons name="share-outline" size={24} color="#1F2937" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View className="flex-1 bg-[#F5F1E8]">
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Image Carousel */}
         <View className="relative">
           <ScrollView
@@ -141,19 +163,31 @@ export default function ProductDetailsScreen() {
                 <Image
                   key={index}
                   source={{ uri: image }}
-                  style={{ width, height: 300 }}
+                  style={{ width, height: 350 }}
                   resizeMode="cover"
                 />
               ))
             ) : (
               <View
-                style={{ width, height: 300 }}
+                style={{ width, height: 350 }}
                 className="bg-background-light items-center justify-center"
               >
                 <Ionicons name="image-outline" size={64} color="#9CA3AF" />
               </View>
             )}
           </ScrollView>
+
+          {/* Back Button */}
+          <SafeAreaView edges={['top']} className="absolute top-0 left-0 right-0">
+            <View className="flex-row items-center justify-between px-4 py-2">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="p-2 bg-white/90 rounded-full"
+              >
+                <Ionicons name="arrow-back" size={24} color="#1F2937" />
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
 
           {/* Image Indicator */}
           {product.images && product.images.length > 1 && (
@@ -162,99 +196,69 @@ export default function ProductDetailsScreen() {
                 <View
                   key={index}
                   className={`h-2 rounded-full ${
-                    index === currentImageIndex ? 'w-6 bg-background-light' : 'w-2 bg-background-light/50'
+                    index === currentImageIndex ? 'w-6 bg-gray-800' : 'w-2 bg-gray-800/50'
                   }`}
                 />
               ))}
             </View>
           )}
-
-          {/* Stock Badge */}
-          <View className="absolute top-4 right-4">
-            <View className={`px-3 py-2 rounded-full ${
-              product.quantity_available < 10 ? 'bg-orange-500' : 'bg-green-500'
-            }`}>
-              <Text className="text-white font-bold text-sm">
-                {product.quantity_available} in stock
-              </Text>
-            </View>
-          </View>
         </View>
 
         {/* Product Info */}
-        <View className="px-4 py-5">
-          {/* Title and Price */}
+        <View className="px-5 py-4">
+          {/* Title and Actions */}
           <View className="flex-row items-start justify-between mb-3">
-            <View className="flex-1 mr-4">
-              <Text className="text-2xl font-bold text-gray-900 mb-2">
-                {product.title}
-              </Text>
-              {product.growing_method && (
-                <View className="flex-row items-center mb-2">
-                  <View className="bg-blue-100 px-3 py-1 rounded-full">
-                    <Text className="text-blue-700 font-semibold text-xs capitalize">
-                      {product.growing_method}
-                    </Text>
-                  </View>
+            <Text className="text-xl font-bold text-gray-900 flex-1 mr-2">
+              {product.title}
+            </Text>
+            <View className="flex-row items-center gap-3">
+              <View className="bg-[#FFCBA4] px-3 py-1 rounded-md">
+                <Text className="text-[#563D1F] font-semibold text-xs">3 days fresh</Text>
+              </View>
+              <TouchableOpacity>
+                <Ionicons name="share-outline" size={22} color="#6B7280" />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Ionicons name="bookmark-outline" size={22} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Tags */}
+          {tags.length > 0 && (
+            <View className="flex-row flex-wrap gap-2 mb-3">
+              {tags.map((tag, index) => (
+                <View key={index} className="bg-[#8B7355] px-3 py-1.5 rounded-full flex-row items-center">
+                  <Text className="text-white text-sm font-medium mr-2">{tag}</Text>
+                  <TouchableOpacity onPress={() => removeTag(tag)}>
+                    <Ionicons name="close" size={16} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
-              )}
+              ))}
             </View>
-            <View className="items-end">
-              <Text className="text-3xl font-bold text-primary">
-                ${product.price.toFixed(2)}
-              </Text>
-              <Text className="text-sm text-gray-500">per {product.unit_of_measure}</Text>
-            </View>
+          )}
+
+          {/* Location */}
+          <View className="mb-3">
+            <Text className="text-sm text-gray-700 font-medium">
+              Nearby - 1 mi
+            </Text>
+            <Text className="text-sm text-gray-600 mt-1">
+              {product.pickup_location || '123 Farmers Ridge Blvd'}
+            </Text>
           </View>
 
           {/* Description */}
           {product.description && (
-            <View className="mb-5">
+            <View className="mb-4">
               <Text className="text-base font-semibold text-gray-900 mb-2">Description</Text>
-              <Text className="text-gray-600 leading-6">{product.description}</Text>
-            </View>
-          )}
-
-          {/* Availability */}
-          {(product.available_from || product.available_to) && (
-            <View className="mb-5 p-4 bg-blue-50 rounded-xl">
-              <View className="flex-row items-center mb-1">
-                <Ionicons name="calendar-outline" size={18} color="#3B82F6" />
-                <Text className="text-sm font-semibold text-blue-900 ml-2">Availability</Text>
-              </View>
-              <Text className="text-blue-700 text-sm">
-                {product.available_from && `From ${new Date(product.available_from).toLocaleDateString()}`}
-                {product.available_from && product.available_to && ' - '}
-                {product.available_to && `To ${new Date(product.available_to).toLocaleDateString()}`}
-              </Text>
-            </View>
-          )}
-
-          {/* Delivery Options */}
-          {product.delivery_options && product.delivery_options.length > 0 && (
-            <View className="mb-5">
-              <Text className="text-base font-semibold text-gray-900 mb-3">Delivery Options</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {product.delivery_options.map((option, index) => (
-                  <View key={index} className="flex-row items-center bg-background-light px-3 py-2 rounded-lg">
-                    <Ionicons
-                      name={option === 'pickup' ? 'basket-outline' : option === 'local_delivery' ? 'car-outline' : 'airplane-outline'}
-                      size={16}
-                      color="#6B7280"
-                    />
-                    <Text className="text-gray-700 font-medium text-sm ml-2 capitalize">
-                      {option.replace('_', ' ')}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+              <Text className="text-gray-700 leading-5">{product.description}</Text>
             </View>
           )}
 
           {/* Seller Info */}
-          <View className="mb-5 p-4 bg-background-light rounded-xl">
-            <Text className="text-base font-semibold text-gray-900 mb-3">Seller Information</Text>
-            <View className="flex-row items-center">
+          <View className="mb-4">
+            <View className="flex-row items-center justify-between">
               <TouchableOpacity
                 className="flex-row items-center flex-1"
                 activeOpacity={0.8}
@@ -263,156 +267,80 @@ export default function ProductDetailsScreen() {
                 {product.seller.profile_pic_url ? (
                   <Image
                     source={{ uri: product.seller.profile_pic_url }}
-                    className="w-14 h-14 rounded-full"
+                    className="w-12 h-12 rounded-full"
                   />
                 ) : (
-                  <View className="w-14 h-14 rounded-full bg-primary items-center justify-center">
-                    <Text className="text-white text-xl font-bold">
+                  <View className="w-12 h-12 rounded-full bg-gray-800 items-center justify-center">
+                    <Text className="text-white text-lg font-bold">
                       {product.seller.name.charAt(0).toUpperCase()}
                     </Text>
                   </View>
                 )}
                 <View className="flex-1 ml-3">
-                  <View className="flex-row items-center">
-                    <Text className="text-lg font-bold text-gray-900">{product.seller.name}</Text>
-                    {product.seller.is_verified_seller && (
-                      <Ionicons name="checkmark-circle" size={18} color="#8FAA7C" className="ml-1" />
-                    )}
-                  </View>
+                  <Text className="text-base font-semibold text-gray-900">
+                    Sold by {product.seller.name}
+                  </Text>
+                  <Text className="text-sm text-gray-600 mt-0.5">
+                    Austin, TX
+                  </Text>
                   <View className="flex-row items-center mt-1">
-                    {product.seller.seller_rating && product.seller.seller_rating > 0 ? (
-                      <>
-                        <Ionicons name="star" size={16} color="#F59E0B" />
-                        <Text className="text-sm font-semibold text-gray-700 ml-1">
-                          {product.seller.seller_rating.toFixed(1)}
-                        </Text>
-                        <Text className="text-sm text-gray-500 ml-1">
-                          ({product.seller.review_count} reviews)
-                        </Text>
-                      </>
-                    ) : (
-                      <Text className="text-sm text-gray-500 ml-1">Unrated</Text>
-                    )}
+                    {renderStars(product.seller.seller_rating || 4.5)}
+                    <Text className="text-xs text-gray-600 ml-1">
+                      ({product.seller.review_count || 238})
+                    </Text>
                   </View>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
-                className="bg-primary px-4 py-2 rounded-lg"
-                onPress={handleMessageSeller}
-                disabled={messagingLoading}
+                className={`px-5 py-2 rounded-full ${isFollowing ? 'bg-gray-300' : 'bg-[#4A6B3C]'}`}
+                onPress={toggleFollow}
               >
-                <Text className="text-white font-semibold">
-                  {messagingLoading ? 'Loading...' : 'Contact'}
+                <Text className={`font-semibold ${isFollowing ? 'text-gray-700' : 'text-white'}`}>
+                  {isFollowing ? 'Following' : 'Follow'}
                 </Text>
               </TouchableOpacity>
             </View>
-            {product.seller.bio && (
-              <Text className="text-gray-600 text-sm mt-3 leading-5">{product.seller.bio}</Text>
-            )}
           </View>
 
-          {/* Pickup Location Map */}
-          {product.pickup_location && (
-            <View className="mb-5">
-              <Text className="text-base font-semibold text-gray-900 mb-3">Pickup Location</Text>
-              <View className="rounded-xl overflow-hidden border border-gray-200">
-                <MapView
-                  style={{ width: '100%', height: 200 }}
-                  initialRegion={{
-                    latitude: product.seller.location_lat || 37.78825,
-                    longitude: product.seller.location_long || -122.4324,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                >
-                  <Marker
-                    coordinate={{
-                      latitude: product.seller.location_lat || 37.78825,
-                      longitude: product.seller.location_long || -122.4324,
-                    }}
-                    title={product.seller.name}
-                    description={product.pickup_location}
-                  />
-                </MapView>
-              </View>
-              <View className="flex-row items-start mt-3 p-3 bg-background-light rounded-lg">
-                <Ionicons name="location" size={20} color="#6B7280" />
-                <Text className="flex-1 text-gray-700 text-sm ml-2">{product.pickup_location}</Text>
-                <TouchableOpacity onPress={openMaps}>
-                  <Ionicons name="navigate" size={20} color="#8FAA7C" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Tags */}
-          {product.tags && product.tags.length > 0 && (
-            <View className="mb-5">
-              <Text className="text-base font-semibold text-gray-900 mb-3">Tags</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {product.tags.map((tag, index) => (
-                  <View key={index} className="bg-background-light px-3 py-2 rounded-full">
-                    <Text className="text-gray-700 text-sm">#{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Stats */}
-          <View className="flex-row items-center justify-around py-4 border-t border-gray-200">
-            <View className="items-center">
-              <View className="flex-row items-center">
-                <Ionicons name="eye-outline" size={20} color="#6B7280" />
-                <Text className="text-gray-900 font-bold ml-1">{product.view_count}</Text>
-              </View>
-              <Text className="text-gray-500 text-xs mt-1">Views</Text>
-            </View>
-            <View className="items-center">
-              <View className="flex-row items-center">
-                <Ionicons name="heart-outline" size={20} color="#6B7280" />
-                <Text className="text-gray-900 font-bold ml-1">{product.favorite_count}</Text>
-              </View>
-              <Text className="text-gray-500 text-xs mt-1">Favorites</Text>
-            </View>
-            <View className="items-center">
-              <View className="flex-row items-center">
-                <Ionicons name="time-outline" size={20} color="#6B7280" />
-                <Text className="text-gray-900 font-bold ml-1">
-                  {new Date(product.created_at).toLocaleDateString()}
+          {/* Send a Message */}
+          <View className="mb-6">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">Send a message</Text>
+            <View className="bg-[#8FAA7C] rounded-2xl p-3 flex-row items-center">
+              <TextInput
+                className="flex-1 text-white text-sm px-2"
+                placeholder="Is this still available?"
+                placeholderTextColor="#FFFFFF99"
+                value={message}
+                onChangeText={setMessage}
+              />
+              <TouchableOpacity
+                className="bg-[#4A6B3C] px-4 py-2 rounded-xl"
+                onPress={handleSendMessage}
+                disabled={messagingLoading}
+              >
+                <Text className="text-white font-semibold text-sm">
+                  {messagingLoading ? '...' : 'Send'}
                 </Text>
-              </View>
-              <Text className="text-gray-500 text-xs mt-1">Posted</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="border-t border-gray-200 px-4 py-3 bg-background-light">
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity className="bg-background-light p-3 rounded-xl">
-            <Ionicons name="heart-outline" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="flex-1 bg-primary py-4 rounded-xl items-center"
+      <SafeAreaView edges={['bottom']} className="bg-[#F5F1E8]">
+        <View className="px-5 py-3 flex-row items-center justify-between">
+          <Text className="text-3xl font-bold text-gray-900">
+            ${product.price.toFixed(2)}
+          </Text>
+          <TouchableOpacity
+            className="bg-[#4A6B3C] px-8 py-3 rounded-full"
             onPress={() => router.push(`/checkout/${product.id}`)}
           >
             <Text className="text-white font-bold text-lg">Buy</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            className="bg-background-light p-3 rounded-xl"
-            onPress={handleMessageSeller}
-            disabled={messagingLoading}
-          >
-            {messagingLoading ? (
-              <ActivityIndicator size="small" color="#1F2937" />
-            ) : (
-              <Ionicons name="chatbubble-outline" size={24} color="#1F2937" />
-            )}
-          </TouchableOpacity>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
