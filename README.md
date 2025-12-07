@@ -9,7 +9,7 @@
 
 A comprehensive mobile-first marketplace platform connecting local farmers, producers, and consumers through a sustainable food ecosystem. Built with React Native, powered by Supabase, and enhanced with AI-driven produce verification using TensorFlow.
 
-## 🎯 Project Overview
+##  Project Overview
 
 HomeGrown is a full-stack mobile application that enables users to buy, sell, and share locally-sourced produce. The platform integrates machine learning for automated produce quality verification, real-time social features, and secure payment processing through Stripe Connect.
 
@@ -23,7 +23,7 @@ HomeGrown is a full-stack mobile application that enables users to buy, sell, an
 - **Messaging System**: Direct communication between buyers and sellers
 - **Profile Management**: Comprehensive user profiles with ratings and verification
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -53,7 +53,7 @@ HomeGrown is a full-stack mobile application that enables users to buy, sell, an
 └────────────────────────────────────┘    └────────────────────────────────────┘
 ```
 
-## 🧠 Machine Learning Model
+##  Machine Learning Model
 
 ### TensorFlow MobileNetV2 Classification Model
 
@@ -100,7 +100,7 @@ Mobile App → Supabase Edge Function → FastAPI ML Service → TensorFlow Mode
 
 The Supabase Edge Function (`classify-fresh-stale`) acts as a proxy, calling the deployed FastAPI service and handling error cases gracefully.
 
-## 💻 Frontend Technology Stack
+##  Frontend Technology Stack
 
 ### Core Framework
 
@@ -139,7 +139,7 @@ The Supabase Edge Function (`classify-fresh-stale`) acts as a proxy, calling the
 - **@stripe/stripe-react-native 0.57.0**: Stripe SDK for React Native
 - Secure payment processing with Stripe Connect for marketplace transactions
 
-## 🔧 Backend Technology Stack
+##  Backend Technology Stack
 
 ### Database: Supabase PostgreSQL
 
@@ -184,7 +184,7 @@ Supabase Edge Functions written in **TypeScript/Deno**:
 - **Video Buckets**: Video posts and guided verification videos
 - **RLS Policies**: Secure access control for storage objects
 
-## 💳 Payment Processing: Stripe Integration
+##  Payment Processing: Stripe Integration
 
 ### Stripe Connect Implementation
 
@@ -228,7 +228,7 @@ stripe_transfer_id TEXT         -- Transfer ID for seller payout
 seller_payout_amount DECIMAL    -- Amount seller receives after fees
 ```
 
-## 📱 Application Features
+##  Application Features
 
 ### Marketplace
 
@@ -270,7 +270,7 @@ seller_payout_amount DECIMAL    -- Amount seller receives after fees
 - **Suggested Users**: Algorithm-based user recommendations
 - **Follow System**: Social graph with real-time updates
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -397,7 +397,7 @@ communities (1) ──< (N) community_members
 - **Foreign Keys**: All relationship columns indexed
 - **Stripe IDs**: Indexed for fast payment lookups
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Supabase Edge Functions
 
@@ -471,7 +471,7 @@ Classify image as fresh or stale.
 }
 ```
 
-## 🧪 Testing
+##  Testing
 
 ### Frontend Testing
 
@@ -496,7 +496,7 @@ curl -X POST http://localhost:8000/classify \
   -d '{"imageUrl": "https://example.com/image.jpg"}'
 ```
 
-## 🚢 Deployment
+##  Deployment
 
 ### Mobile App
 
@@ -516,7 +516,7 @@ curl -X POST http://localhost:8000/classify \
 - **Render**: Use `render.yaml` configuration
 - **Docker**: Containerized deployment supported
 
-## 🔒 Security
+##  Security
 
 - **Row Level Security (RLS)**: Database-level access control
 - **JWT Authentication**: Supabase Auth with refresh tokens
@@ -525,7 +525,7 @@ curl -X POST http://localhost:8000/classify \
 - **Input Validation**: Pydantic models for API requests
 - **SQL Injection Prevention**: Parameterized queries via Supabase client
 
-## 📈 Performance Optimizations
+##  Performance Optimizations
 
 - **Image Optimization**: Expo Image with caching
 - **Lazy Loading**: Code splitting with Expo Router
@@ -534,7 +534,7 @@ curl -X POST http://localhost:8000/classify \
 - **Model Caching**: ML model loaded once on API startup
 - **CDN**: Supabase Storage CDN for media delivery
 
-## 🛠️ Development Tools
+##  Development Tools
 
 - **TypeScript**: Type safety across codebase
 - **ESLint**: Code quality and consistency
@@ -542,19 +542,19 @@ curl -X POST http://localhost:8000/classify \
 - **Supabase Studio**: Database management UI
 - **Stripe Dashboard**: Payment monitoring
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License.
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please read our contributing guidelines and code of conduct before submitting PRs.
 
-## 📧 Contact
+##  Contact
 
 For questions or support, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ for sustainable agriculture**
+**Built with love for sustainable agriculture**
 
