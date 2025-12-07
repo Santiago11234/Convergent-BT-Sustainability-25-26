@@ -189,11 +189,11 @@ export default function CommunityScreen() {
       <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: fadeAnim }}>
         <TouchableOpacity
           onPress={handleCardPress}
-          className="bg-white rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm"
+          className="bg-background-light rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm"
           activeOpacity={0.9}
         >
           {/* Community Image/Header */}
-          <View className="h-32 bg-gray-100 relative">
+          <View className="h-32 bg-background-light relative">
             {item.image_url ? (
               <Image
                 source={{ uri: item.image_url }}
@@ -214,7 +214,7 @@ export default function CommunityScreen() {
             )}
             {item.category && (
               <View className="absolute top-4 right-4">
-                <View className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full">
+                <View className="bg-background-light/90 backdrop-blur px-3 py-1.5 rounded-full">
                   <Text className="text-xs font-bold text-primary">{item.category}</Text>
                 </View>
               </View>
@@ -253,7 +253,7 @@ export default function CommunityScreen() {
                 disabled={isJoining}
                 className={`px-5 py-2.5 rounded-2xl flex-row items-center ${
                   isJoined
-                    ? 'bg-gray-100'
+                    ? 'bg-background-light'
                     : 'bg-primary'
                 }`}
                 activeOpacity={0.8}
@@ -307,10 +307,10 @@ export default function CommunityScreen() {
           <View className="flex-row items-center">
             <Image
               source={require('@/assets/logos/logo.png')}
-              style={{ width: 28, height: 28 }}
+              style={{ width: 32, height: 32, tintColor: '#4A6B3C' }}
               resizeMode="contain"
             />
-            <Text className="text-2xl font-black text-gray-900 ml-2">Community</Text>
+            <Text className="text-3xl font-black text-primary ml-2">HomeGrown</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push('/createCommunity')}
@@ -430,7 +430,7 @@ export default function CommunityScreen() {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* Search Bar */}
           <View className="px-6 pb-4">
-            <View className="bg-gray-100 rounded-2xl px-4 py-3 flex-row items-center">
+            <View className="bg-background-light rounded-2xl px-4 py-3 flex-row items-center">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput
                 className="flex-1 ml-3 text-base text-gray-900"
@@ -464,13 +464,13 @@ export default function CommunityScreen() {
                 return (
                   <TouchableOpacity
                     key={conversation.id}
-                    className="bg-white rounded-3xl p-4 mb-3 flex-row items-center shadow-sm"
+                    className="bg-background-light rounded-3xl p-4 mb-3 flex-row items-center shadow-sm"
                     activeOpacity={0.8}
                     onPress={() => router.push(`/messages/${conversation.id}`)}
                   >
                     <TouchableOpacity
                       activeOpacity={0.8}
-                      className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center mr-4 overflow-hidden border-2 border-white shadow-sm"
+                      className="w-14 h-14 rounded-full bg-background-light items-center justify-center mr-4 overflow-hidden border-2 border-background shadow-sm"
                       onPress={(event) => handleProfilePress(otherParticipant.id, event)}
                     >
                       {otherParticipant.profile_pic_url ? (

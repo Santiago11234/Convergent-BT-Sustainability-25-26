@@ -53,10 +53,10 @@ export default function SellerScreen() {
   };
 
   const renderProductCard = ({ item }: { item: typeof products[0] }) => (
-    <View className="bg-white rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm">
+    <View className="bg-background-light rounded-2xl p-4 mb-3 border border-gray-100 shadow-sm">
       <View className="flex-row">
         {/* Product Image */}
-        <View className="w-20 h-20 rounded-xl bg-gray-100 mr-3">
+        <View className="w-20 h-20 rounded-xl bg-background-light mr-3">
           {item.images && item.images.length > 0 && item.images[0] ? (
             <Image
               source={{ uri: item.images[0] }}
@@ -113,7 +113,7 @@ export default function SellerScreen() {
       </View>
 
       {/* Tab Navigation */}
-      <View className="flex-row bg-white border-b border-gray-100">
+      <View className="flex-row bg-background-light border-b border-gray-100">
         <TouchableOpacity 
           onPress={() => setActiveTab('products')}
           className={`flex-1 py-3 ${activeTab === 'products' ? 'border-b-2 border-primary' : ''}`}
@@ -135,7 +135,7 @@ export default function SellerScreen() {
       {activeTab === 'products' ? (
         <>
           {/* Stats Section */}
-          <View className="bg-white mx-4 mt-4 rounded-2xl p-4 shadow-sm">
+          <View className="bg-background-light mx-4 mt-4 rounded-2xl p-4 shadow-sm">
             <Text className="text-lg font-bold text-gray-900 mb-3">Stats</Text>
             <View className="flex-row justify-between">
               <View className="flex-1 items-center">
@@ -174,7 +174,7 @@ export default function SellerScreen() {
           </View>
         </>
       ) : (
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-background-light">
           <GeminiWrapper endpoint={GEMINI_ENDPOINT} apiKey={GEMINI_API_KEY} />
         </View>
       )}

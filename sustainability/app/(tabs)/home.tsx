@@ -55,14 +55,14 @@ export default function HomeScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-4 pb-6 bg-background">
+        <View className="px-6 pt-4 pb-3 bg-background">
           <View className="flex-row items-center">
             <Image
               source={require('@/assets/logos/logo.png')}
-              style={{ width: 32, height: 32 }}
+              style={{ width: 32, height: 32, tintColor: '#4A6B3C' }}
               resizeMode="contain"
             />
-            <Text className="text-3xl font-black text-gray-900 ml-2">HomeGrown</Text>
+            <Text className="text-3xl font-black text-primary ml-2">HomeGrown</Text>
           </View>
         </View>
 
@@ -223,7 +223,7 @@ export default function HomeScreen() {
                 style={{ transform: [{ scale: cardAnimations[0] }], opacity: fadeAnim }}
               >
                 <TouchableOpacity
-                  className="rounded-3xl overflow-hidden bg-white shadow-sm"
+                  className="rounded-3xl overflow-hidden bg-background-light shadow-sm"
                   activeOpacity={0.9}
                 >
                   <Image

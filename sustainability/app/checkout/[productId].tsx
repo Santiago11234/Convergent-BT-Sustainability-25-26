@@ -218,11 +218,11 @@ export default function CheckoutScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Product Summary */}
-        <View className="bg-white p-4 mb-3">
+        <View className="bg-background-light p-4 mb-3">
           <Text className="text-sm font-semibold text-gray-500 mb-3">ORDER SUMMARY</Text>
           <View className="flex-row">
             {/* Product Image */}
-            <View className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden mr-3">
+            <View className="w-20 h-20 rounded-xl bg-background-light overflow-hidden mr-3">
               {product.images && product.images.length > 0 && product.images[0] ? (
                 <Image
                   source={{ uri: product.images[0] }}
@@ -257,10 +257,10 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Quantity Selector */}
-        <View className="bg-white p-4 mb-3">
+        <View className="bg-background-light p-4 mb-3">
           <Text className="text-sm font-semibold text-gray-500 mb-3">QUANTITY</Text>
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center bg-gray-100 rounded-xl">
+            <View className="flex-row items-center bg-background-light rounded-xl">
               <TouchableOpacity
                 onPress={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1}
@@ -292,7 +292,7 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Price Breakdown */}
-        <View className="bg-white p-4 mb-3">
+        <View className="bg-background-light p-4 mb-3">
           <Text className="text-sm font-semibold text-gray-500 mb-3">PRICE BREAKDOWN</Text>
 
           <View className="flex-row justify-between mb-2">
@@ -303,7 +303,7 @@ export default function CheckoutScreen() {
           <View className="flex-row justify-between mb-2">
             <View className="flex-row items-center">
               <Text className="text-gray-700">Platform Fee</Text>
-              <View className="ml-1 bg-gray-100 px-2 py-0.5 rounded">
+              <View className="ml-1 bg-background-light px-2 py-0.5 rounded">
                 <Text className="text-xs text-gray-600">10%</Text>
               </View>
             </View>
@@ -332,11 +332,11 @@ export default function CheckoutScreen() {
 
         {/* Delivery Method */}
         {product.delivery_options && product.delivery_options.length > 0 && (
-          <View className="bg-white p-4 mb-3">
+          <View className="bg-background-light p-4 mb-3">
             <Text className="text-sm font-semibold text-gray-500 mb-3">DELIVERY OPTIONS</Text>
             <View className="flex-row flex-wrap gap-2">
               {product.delivery_options.map((option, index) => (
-                <View key={index} className="flex-row items-center bg-gray-100 px-3 py-2 rounded-lg">
+                <View key={index} className="flex-row items-center bg-background-light px-3 py-2 rounded-lg">
                   <Ionicons
                     name={option === 'pickup' ? 'basket-outline' : option === 'local_delivery' ? 'car-outline' : 'airplane-outline'}
                     size={16}
@@ -371,7 +371,7 @@ export default function CheckoutScreen() {
       </ScrollView>
 
       {/* Bottom Payment Button */}
-      <View className="bg-white border-t border-gray-200 px-4 py-3">
+      <View className="bg-background-light border-t border-gray-200 px-4 py-3">
         <TouchableOpacity
           onPress={handlePayment}
           disabled={loading || quantity < 1}
@@ -401,7 +401,7 @@ export default function CheckoutScreen() {
           style={{ opacity: fadeAnim }}
           className="absolute inset-0 bg-black/50 items-center justify-center"
         >
-          <View className="bg-white rounded-3xl p-8 mx-6 items-center shadow-2xl">
+          <View className="bg-background-light rounded-3xl p-8 mx-6 items-center shadow-2xl">
             {/* Success Icon */}
             <View className="bg-green-100 rounded-full p-6 mb-6">
               <Ionicons name="checkmark-circle" size={80} color="#8FAA7C" />
@@ -451,7 +451,7 @@ export default function CheckoutScreen() {
                 setShowSuccess(false);
                 router.replace('/(tabs)/profile');
               }}
-              className="bg-gray-100 px-8 py-5 rounded-xl w-full items-center"
+              className="bg-background-light px-8 py-5 rounded-xl w-full items-center"
             >
               <Text className="text-gray-700 font-semibold text-lg">
                 View My Orders

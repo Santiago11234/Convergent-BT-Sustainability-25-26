@@ -148,7 +148,7 @@ export default function ProductDetailsScreen() {
             ) : (
               <View
                 style={{ width, height: 300 }}
-                className="bg-gray-100 items-center justify-center"
+                className="bg-background-light items-center justify-center"
               >
                 <Ionicons name="image-outline" size={64} color="#9CA3AF" />
               </View>
@@ -162,7 +162,7 @@ export default function ProductDetailsScreen() {
                 <View
                   key={index}
                   className={`h-2 rounded-full ${
-                    index === currentImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'
+                    index === currentImageIndex ? 'w-6 bg-background-light' : 'w-2 bg-background-light/50'
                   }`}
                 />
               ))}
@@ -236,7 +236,7 @@ export default function ProductDetailsScreen() {
               <Text className="text-base font-semibold text-gray-900 mb-3">Delivery Options</Text>
               <View className="flex-row flex-wrap gap-2">
                 {product.delivery_options.map((option, index) => (
-                  <View key={index} className="flex-row items-center bg-gray-100 px-3 py-2 rounded-lg">
+                  <View key={index} className="flex-row items-center bg-background-light px-3 py-2 rounded-lg">
                     <Ionicons
                       name={option === 'pickup' ? 'basket-outline' : option === 'local_delivery' ? 'car-outline' : 'airplane-outline'}
                       size={16}
@@ -252,7 +252,7 @@ export default function ProductDetailsScreen() {
           )}
 
           {/* Seller Info */}
-          <View className="mb-5 p-4 bg-gray-50 rounded-xl">
+          <View className="mb-5 p-4 bg-background-light rounded-xl">
             <Text className="text-base font-semibold text-gray-900 mb-3">Seller Information</Text>
             <View className="flex-row items-center">
               <TouchableOpacity
@@ -335,7 +335,7 @@ export default function ProductDetailsScreen() {
                   />
                 </MapView>
               </View>
-              <View className="flex-row items-start mt-3 p-3 bg-gray-50 rounded-lg">
+              <View className="flex-row items-start mt-3 p-3 bg-background-light rounded-lg">
                 <Ionicons name="location" size={20} color="#6B7280" />
                 <Text className="flex-1 text-gray-700 text-sm ml-2">{product.pickup_location}</Text>
                 <TouchableOpacity onPress={openMaps}>
@@ -351,7 +351,7 @@ export default function ProductDetailsScreen() {
               <Text className="text-base font-semibold text-gray-900 mb-3">Tags</Text>
               <View className="flex-row flex-wrap gap-2">
                 {product.tags.map((tag, index) => (
-                  <View key={index} className="bg-gray-100 px-3 py-2 rounded-full">
+                  <View key={index} className="bg-background-light px-3 py-2 rounded-full">
                     <Text className="text-gray-700 text-sm">#{tag}</Text>
                   </View>
                 ))}
@@ -389,19 +389,19 @@ export default function ProductDetailsScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="border-t border-gray-200 px-4 py-3 bg-white">
+      <View className="border-t border-gray-200 px-4 py-3 bg-background-light">
         <View className="flex-row items-center gap-3">
-          <TouchableOpacity className="bg-gray-100 p-3 rounded-xl">
+          <TouchableOpacity className="bg-background-light p-3 rounded-xl">
             <Ionicons name="heart-outline" size={24} color="#1F2937" />
           </TouchableOpacity>
           <TouchableOpacity 
             className="flex-1 bg-primary py-4 rounded-xl items-center"
             onPress={() => router.push(`/checkout/${product.id}`)}
           >
-            <Text className="text-white font-bold text-lg">Buy Now</Text>
+            <Text className="text-white font-bold text-lg">Buy</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="bg-gray-100 p-3 rounded-xl"
+            className="bg-background-light p-3 rounded-xl"
             onPress={handleMessageSeller}
             disabled={messagingLoading}
           >

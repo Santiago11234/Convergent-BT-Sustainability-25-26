@@ -452,7 +452,7 @@ export default function CreatePostScreen() {
         };
       default:
         return {
-          container: 'bg-gray-50 border border-gray-200',
+          container: 'bg-background-light border border-gray-200',
           label: 'text-gray-700',
           statusText: 'text-gray-600',
         };
@@ -794,7 +794,7 @@ export default function CreatePostScreen() {
       <View className="mb-6">
         <Text className="text-lg font-semibold text-gray-800 mb-3">Product Title *</Text>
         <TextInput
-          className="bg-white border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg"
+          className="bg-background-light border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg"
           placeholder="e.g., Fresh Organic Tomatoes"
           placeholderTextColor="#9CA3AF"
           value={postData.title}
@@ -806,7 +806,7 @@ export default function CreatePostScreen() {
       <View className="mb-6">
         <Text className="text-lg font-semibold text-gray-800 mb-3">Description *</Text>
         <TextInput
-          className="bg-white border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg h-32"
+          className="bg-background-light border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg h-32"
           placeholder="Describe your product, growing methods, freshness, etc."
           placeholderTextColor="#9CA3AF"
           value={postData.description}
@@ -827,7 +827,7 @@ export default function CreatePostScreen() {
               className={`px-6 py-3 rounded-full border-2 ${
                 postData.category === category 
                   ? 'bg-primary border-primary' 
-                  : 'bg-white border-gray-200'
+                  : 'bg-background-light border-gray-200'
               }`}
             >
               <Text
@@ -845,7 +845,7 @@ export default function CreatePostScreen() {
       {/* Photo Upload Section */}
       <View className="mb-6">
         <Text className="text-lg font-semibold text-gray-800 mb-3">Add Photos</Text>
-        <View className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+        <View className="bg-background-light border-2 border-gray-200 rounded-2xl p-4">
           <View className="flex-row flex-wrap gap-4">
             {postData.images.map((image, index) => (
               <View key={index} className="relative">
@@ -892,12 +892,12 @@ export default function CreatePostScreen() {
         </View>
       
         {/* Price and Unit Section */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <View className="bg-background-light rounded-2xl p-6 shadow-sm mb-6">
           <View className="flex-row gap-4">
             <View className="flex-1">
               <Text className="text-lg font-semibold text-gray-800 mb-3">Price *</Text>
               <TextInput
-                className="bg-gray-50 border-2 border-gray-200 rounded-xl px-5 py-4 text-lg"
+                className="bg-background-light border-2 border-gray-200 rounded-xl px-5 py-4 text-lg"
                 placeholder="0.00"
                 value={postData.price}
                 onChangeText={(text) => updatePostData('price', text)}
@@ -908,7 +908,7 @@ export default function CreatePostScreen() {
               <Text className="text-lg font-semibold text-gray-800 mb-3">Unit</Text>
               <TouchableOpacity
                 onPress={() => setShowUnitDropdown(!showUnitDropdown)}
-                className="bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between"
+                className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-4 flex-row items-center justify-between"
               >
                 <Text className="text-lg font-semibold text-gray-700">{postData.unit}</Text>
                 <Ionicons 
@@ -922,10 +922,10 @@ export default function CreatePostScreen() {
         </View>
 
         {/* Available Quantity */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <View className="bg-background-light rounded-2xl p-6 shadow-sm mb-6">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Available Quantity</Text>
           <TextInput
-            className="bg-gray-50 border-2 border-gray-200 rounded-xl px-5 py-4 text-lg"
+            className="bg-background-light border-2 border-gray-200 rounded-xl px-5 py-4 text-lg"
             placeholder="e.g., 50 lbs available"
             value={postData.availableQuantity}
             onChangeText={(text) => updatePostData('availableQuantity', text)}
@@ -933,7 +933,7 @@ export default function CreatePostScreen() {
         </View>
 
         {/* Payment Methods */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <View className="bg-background-light rounded-2xl p-6 shadow-sm mb-6">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Accepted Payment Methods</Text>
           <View className="flex-row flex-wrap gap-2">
             {['Cash', 'Venmo', 'PayPal', 'Zelle', 'Cash App', 'In-App', 'Other'].map((method) => (
@@ -943,7 +943,7 @@ export default function CreatePostScreen() {
                 className={`px-3 py-2 rounded-full border ${
                   selectedPaymentMethods.includes(method)
                     ? 'bg-primary border-primary'
-                    : 'bg-gray-100 border-gray-200'
+                    : 'bg-background-light border-gray-200'
                 }`}
               >
                 <Text
@@ -967,7 +967,7 @@ export default function CreatePostScreen() {
             <View className="mt-4">
               <Text className="text-sm font-semibold text-gray-700 mb-2">Specify Other Payment Method</Text>
               <TextInput
-                className="bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
+                className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
                 placeholder="e.g., Apple Pay, Google Pay, Check..."
                 value={otherPaymentMethod}
                 onChangeText={setOtherPaymentMethod}
@@ -977,7 +977,7 @@ export default function CreatePostScreen() {
         </View>
 
         {/* Tags */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <View className="bg-background-light rounded-2xl p-6 shadow-sm mb-6">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Tags</Text>
           <View className="flex-row flex-wrap gap-2">
             {POPULAR_TAGS.map((tag) => (
@@ -985,7 +985,7 @@ export default function CreatePostScreen() {
                 key={tag}
                 onPress={() => toggleTag(tag)}
                 className={`px-3 py-2 rounded-full ${
-                  postData.tags.includes(tag) ? 'bg-primary' : 'bg-gray-100'
+                  postData.tags.includes(tag) ? 'bg-primary' : 'bg-background-light'
                 }`}
               >
                 <Text
@@ -1009,8 +1009,8 @@ export default function CreatePostScreen() {
             onPress={() => setShowUnitDropdown(false)}
             activeOpacity={1}
           />
-          <View className="absolute top-32 right-4 w-32 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            <View className="bg-gray-50 p-2 border-b border-gray-100">
+          <View className="absolute top-32 right-4 w-32 bg-background-light rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+            <View className="bg-background-light p-2 border-b border-gray-100">
               <Text className="text-xs font-semibold text-gray-500 text-center">Select Unit</Text>
             </View>
             {UNITS.map((unit, index) => (
@@ -1023,7 +1023,7 @@ export default function CreatePostScreen() {
                 className={`px-4 py-4 ${
                   postData.unit === unit 
                     ? 'bg-primary' 
-                    : 'bg-white'
+                    : 'bg-background-light'
                 } ${index !== UNITS.length - 1 ? 'border-b border-gray-100' : ''}`}
                 activeOpacity={0.7}
               >
@@ -1060,7 +1060,7 @@ export default function CreatePostScreen() {
       <View className="mb-4">
         <Text className="text-lg font-semibold text-gray-800 mb-3">Location *</Text>
         <TextInput
-          className="bg-white border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg"
+          className="bg-background-light border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg"
           placeholder="e.g., Austin, TX or 123 Main St, Austin, TX"
           placeholderTextColor="#9CA3AF"
           value={postData.location}
@@ -1151,7 +1151,7 @@ export default function CreatePostScreen() {
       <View className="mb-4">
         <Text className="text-lg font-semibold text-gray-800 mb-3">Pickup Instructions</Text>
         <TextInput
-          className="bg-white border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg h-24"
+          className="bg-background-light border-2 border-gray-200 rounded-2xl px-5 py-4 text-lg h-24"
           placeholder="e.g., Ring doorbell, call when you arrive, leave in cooler by door..."
           placeholderTextColor="#9CA3AF"
           value={postData.pickupInstructions}
@@ -1168,7 +1168,7 @@ export default function CreatePostScreen() {
           <TouchableOpacity
             onPress={() => updatePostData('isResidential', true)}
             className={`flex-1 py-3 px-4 rounded-xl border-2 ${
-              postData.isResidential ? 'bg-primary border-primary' : 'bg-white border-gray-200'
+              postData.isResidential ? 'bg-primary border-primary' : 'bg-background-light border-gray-200'
             }`}
           >
             <Text
@@ -1182,7 +1182,7 @@ export default function CreatePostScreen() {
           <TouchableOpacity
             onPress={() => updatePostData('isResidential', false)}
             className={`flex-1 py-3 px-4 rounded-xl border-2 ${
-              !postData.isResidential ? 'bg-primary border-primary' : 'bg-white border-gray-200'
+              !postData.isResidential ? 'bg-primary border-primary' : 'bg-background-light border-gray-200'
             }`}
           >
             <Text
@@ -1222,7 +1222,7 @@ export default function CreatePostScreen() {
           </Text>
         </View>
 
-        <View className="bg-white rounded-3xl p-4 shadow-sm">
+        <View className="bg-background-light rounded-3xl p-4 shadow-sm">
           {hasCameraPermission === false && (
             <View className="items-center justify-center py-12 px-4">
               <Ionicons name="alert-circle" size={48} color="#EF4444" />
@@ -1279,7 +1279,7 @@ export default function CreatePostScreen() {
                         {promptInfo?.instruction ||
                           'Press start and follow the prompts to rotate the produce slowly.'}
                       </Text>
-                      <View className="h-2 bg-white/20 rounded-full mt-3">
+                      <View className="h-2 bg-background-light/20 rounded-full mt-3">
                         <View
                           className="h-full bg-primary rounded-full"
                           style={{ width: `${Math.min(progress * 100, 100)}%` }}
@@ -1358,7 +1358,7 @@ export default function CreatePostScreen() {
                 {captureComplete && (
                   <TouchableOpacity
                     onPress={resetGuidedCapture}
-                    className="px-4 py-4 bg-gray-100 rounded-xl items-center justify-center"
+                    className="px-4 py-4 bg-background-light rounded-xl items-center justify-center"
                   >
                     <Ionicons name="refresh" size={20} color="#4B5563" />
                     <Text className="text-xs text-gray-600 mt-1">Reset</Text>
@@ -1398,7 +1398,7 @@ export default function CreatePostScreen() {
                     return (
                       <View
                         key={angle.key}
-                        className="rounded-xl border-2 overflow-hidden bg-gray-50 items-center justify-center relative"
+                        className="rounded-xl border-2 overflow-hidden bg-background-light items-center justify-center relative"
                         style={{ 
                           width: '30%', 
                           aspectRatio: 1,
@@ -1487,7 +1487,7 @@ export default function CreatePostScreen() {
           </View>
           
           {/* Main Product Info */}
-          <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+          <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
             <Text className="text-3xl font-bold text-gray-900 mb-2 text-center">{postData.title}</Text>
             <Text className="text-2xl font-bold text-primary mb-4 text-center">
               ${postData.price}<Text className="text-lg text-gray-500 font-normal">/{postData.unit}</Text>
@@ -1496,7 +1496,7 @@ export default function CreatePostScreen() {
           </View>
 
           {/* Category */}
-          <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+          <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
             <View className="flex-row items-center mb-4">
               <Ionicons name="pricetag" size={24} color="#8FAA7C" />
               <Text className="text-xl font-bold text-gray-800 ml-3">Category</Text>
@@ -1505,7 +1505,7 @@ export default function CreatePostScreen() {
           </View>
 
           {/* Location */}
-          <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+          <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
             <View className="flex-row items-center mb-4">
               <Ionicons name="location" size={24} color="#8FAA7C" />
               <Text className="text-xl font-bold text-gray-800 ml-3">Location</Text>
@@ -1518,7 +1518,7 @@ export default function CreatePostScreen() {
 
           {/* Available Quantity */}
           {postData.availableQuantity && (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+            <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="basket" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Available Quantity</Text>
@@ -1529,7 +1529,7 @@ export default function CreatePostScreen() {
 
           {/* Payment Methods */}
           {selectedPaymentMethods.length > 0 && (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+            <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="card" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Payment Methods</Text>
@@ -1551,7 +1551,7 @@ export default function CreatePostScreen() {
 
           {/* Photo Preview */}
           {postData.images.length > 0 && (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+            <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="camera" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Photos ({postData.images.length})</Text>
@@ -1566,7 +1566,7 @@ export default function CreatePostScreen() {
 
           {/* Tags Preview */}
           {postData.tags.length > 0 && (
-            <View className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
+            <View className="bg-background-light rounded-2xl p-6 mb-6 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="pricetag" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">Tags ({postData.tags.length})</Text>
@@ -1582,7 +1582,7 @@ export default function CreatePostScreen() {
           )}
 
           {verificationResult && (
-            <View className="bg-white rounded-2xl p-6 shadow-sm">
+            <View className="bg-background-light rounded-2xl p-6 shadow-sm">
               <View className="flex-row items-center mb-4">
                 <Ionicons name="shield-checkmark" size={24} color="#8FAA7C" />
                 <Text className="text-xl font-bold text-gray-800 ml-3">AI Verification</Text>
@@ -1648,12 +1648,12 @@ export default function CreatePostScreen() {
       </ScrollView>
 
       {/* Navigation */}
-      <View className="bg-white px-4 py-4 border-t border-gray-100">
+      <View className="bg-background px-4 py-4">
         <View className="flex-row gap-3">
           {currentStep > 1 && (
             <TouchableOpacity
               onPress={prevStep}
-              className="flex-1 bg-gray-100 rounded-xl py-4 items-center"
+              className="flex-1 bg-background-light rounded-xl py-4 items-center"
             >
               <Text className="text-base font-semibold text-gray-700">Previous</Text>
             </TouchableOpacity>

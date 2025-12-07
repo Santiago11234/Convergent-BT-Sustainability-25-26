@@ -81,14 +81,14 @@ export default function LoginScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white items-center justify-center">
+      <View className="flex-1 bg-background-light items-center justify-center">
         <ActivityIndicator size="large" color="#8FAA7C" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background-light">
       {/* Decorative circles */}
       <View className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-green-50 opacity-70" />
       <View className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-green-50 opacity-50" />
@@ -170,7 +170,7 @@ export default function LoginScreen() {
         onRequestClose={() => setShowRoleSelection(false)}
       >
         <View className="flex-1 bg-black/50 items-center justify-center px-4">
-          <View className="bg-white rounded-3xl p-6 w-full max-w-md">
+          <View className="bg-background-light rounded-3xl p-6 w-full max-w-md">
             <Text className="text-2xl font-bold text-gray-900 text-center mb-2">
               Welcome! How will you use the app?
             </Text>

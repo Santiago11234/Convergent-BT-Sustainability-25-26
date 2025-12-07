@@ -53,7 +53,7 @@ export default function MessagesScreen() {
 
     return (
       <TouchableOpacity
-        className="bg-white px-4 py-4 border-b border-gray-100"
+        className="bg-background-light px-4 py-4 border-b border-gray-100"
         activeOpacity={0.7}
         onPress={() => router.push(`/messages/${item.id}`)}
       >

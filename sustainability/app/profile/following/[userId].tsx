@@ -37,7 +37,7 @@ export default function FollowingListScreen() {
 
   const renderFollowing = ({ item }: { item: User }) => (
     <TouchableOpacity
-      className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-white"
+      className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-background-light"
       activeOpacity={0.7}
       onPress={() => navigateToProfile(item.id)}
     >
@@ -82,7 +82,7 @@ export default function FollowingListScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
+      <View className="bg-background-light px-4 py-3 border-b border-gray-100 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 mr-2">
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>

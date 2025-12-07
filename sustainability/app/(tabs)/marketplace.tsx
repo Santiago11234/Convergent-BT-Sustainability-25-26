@@ -106,12 +106,12 @@ export default function MarketplaceScreen() {
         }}
       >
         <TouchableOpacity
-          className="bg-white rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm"
+          className="rounded-3xl overflow-hidden mb-4 mx-4 shadow-sm border border-gray-200"
           activeOpacity={0.9}
           onPress={() => router.push(`/product/${item.id}`)}
         >
           {/* Product Image */}
-          <View className="h-48 bg-gray-100 relative">
+          <View className="h-48 bg-background-light relative">
             {item.images && item.images.length > 0 && item.images[0] ? (
               <Image
                 source={{ uri: item.images[0] }}
@@ -188,27 +188,19 @@ export default function MarketplaceScreen() {
       {/* Header */}
       <View className="bg-background px-6 py-4 border-b border-gray-100">
         <View className="flex-row items-center justify-between mb-4">
-          <View className="flex-row items-center">
-            <Image
-              source={require('@/assets/logos/logo.png')}
-              style={{ width: 28, height: 28 }}
-              resizeMode="contain"
-            />
-            <Text className="text-2xl font-black text-gray-900 ml-2">Marketplace</Text>
-          </View>
-          <TouchableOpacity 
+          <Text className="text-3xl font-black text-primary flex-1">What can we help you find?</Text>
+          <TouchableOpacity
             onPress={() => router.push('/(tabs)/createProduct')}
-            className="bg-primary px-4 py-2 rounded-xl flex-row items-center shadow-sm"
+            className="bg-primary px-3 py-2 rounded-xl ml-3"
             activeOpacity={0.8}
           >
-            <Ionicons name="add-circle" size={18} color="white" />
-            <Text className="text-white font-semibold ml-2">Sell</Text>
+            <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-
+        
         {/* Search Bar */}
         <View className="flex-row items-center gap-3 mb-4">
-          <View className="flex-1 flex-row items-center bg-gray-100 rounded-2xl px-4 py-3">
+          <View className="flex-1 flex-row items-center bg-background-light rounded-2xl px-4 py-3">
             <Ionicons name="search" size={20} color="#9CA3AF" />
             <TextInput
               className="flex-1 ml-3 text-base text-gray-900"
@@ -226,7 +218,7 @@ export default function MarketplaceScreen() {
 
           <TouchableOpacity
             onPress={() => setShowFilters(!showFilters)}
-            className={`p-3 rounded-2xl ${showFilters ? 'bg-primary' : 'bg-gray-100'}`}
+            className={`p-3 rounded-2xl ${showFilters ? 'bg-primary' : 'bg-background-light'}`}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -250,7 +242,7 @@ export default function MarketplaceScreen() {
               className={`px-4 py-2 mr-2 rounded-full ${
                 selectedCategory === category
                   ? 'bg-primary'
-                  : 'bg-gray-100'
+                  : 'bg-background-light'
               }`}
               activeOpacity={0.7}
             >
@@ -271,7 +263,7 @@ export default function MarketplaceScreen() {
       {/* Filters Panel */}
       {showFilters && (
         <Animated.View 
-          className="bg-white px-6 py-4 border-b border-gray-100"
+          className="bg-background px-6 py-4 border-b border-gray-100"
           style={{ opacity: fadeAnim }}
         >
           <View className="mb-4">
@@ -285,7 +277,7 @@ export default function MarketplaceScreen() {
                   key={distance}
                   onPress={() => setDistanceRange(distance)}
                   className={`flex-1 py-2.5 rounded-xl ${
-                    distanceRange === distance ? 'bg-primary' : 'bg-gray-100'
+                    distanceRange === distance ? 'bg-primary' : 'bg-background-light'
                   }`}
                   activeOpacity={0.7}
                 >
@@ -314,7 +306,7 @@ export default function MarketplaceScreen() {
                   key={maxPrice}
                   onPress={() => setPriceRange([0, maxPrice])}
                   className={`flex-1 py-2.5 rounded-xl ${
-                    priceRange[1] === maxPrice ? 'bg-primary' : 'bg-gray-100'
+                    priceRange[1] === maxPrice ? 'bg-primary' : 'bg-background-light'
                   }`}
                   activeOpacity={0.7}
                 >
@@ -384,7 +376,7 @@ export default function MarketplaceScreen() {
           className="flex-1 bg-black/50 justify-end"
         >
           <TouchableOpacity activeOpacity={1}>
-            <View className="bg-white rounded-t-3xl px-6 py-6">
+            <View className="bg-background rounded-t-3xl px-6 py-6">
               <Text className="text-xl font-bold text-gray-900 mb-4">Sort By</Text>
 
               {[

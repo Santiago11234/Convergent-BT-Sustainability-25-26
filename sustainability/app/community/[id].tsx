@@ -372,7 +372,7 @@ export default function CommunityDetailScreen() {
               transform: [{ translateX: channelsSidebarAnim }],
             }}
           >
-            <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white">
+            <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-background-light">
               <Text className="text-sm font-semibold text-gray-900">Channels</Text>
               <View className="flex-row items-center gap-2">
                 <TouchableOpacity onPress={() => setShowCreateChannel(true)}>
@@ -428,9 +428,9 @@ export default function CommunityDetailScreen() {
         </>
 
         {/* Main Chat Area */}
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-background-light">
           {/* Chat Header with Toggle Buttons */}
-          <View className="flex-row items-center px-4 py-3 border-b border-gray-200 bg-white">
+          <View className="flex-row items-center px-4 py-3 border-b border-gray-200 bg-background-light">
             <TouchableOpacity
               onPress={() => setShowChannelsSidebar(!showChannelsSidebar)}
               className="mr-3"
@@ -529,14 +529,14 @@ export default function CommunityDetailScreen() {
               />
 
               {/* Message Input */}
-              <View className="border-t border-gray-200 px-4 py-3 bg-white">
+              <View className="border-t border-gray-200 px-4 py-3 bg-background-light">
                 <View className="flex-row items-center">
                   <TextInput
                     value={newMessage}
                     onChangeText={setNewMessage}
                     placeholder={`Message #${selectedChannel.name}`}
                     placeholderTextColor="#9CA3AF"
-                    className="flex-1 bg-gray-100 rounded-xl px-4 py-3 mr-2"
+                    className="flex-1 bg-background-light rounded-xl px-4 py-3 mr-2"
                     multiline
                     maxLength={1000}
                   />
@@ -604,7 +604,7 @@ export default function CommunityDetailScreen() {
               transform: [{ translateX: membersSidebarAnim }],
             }}
           >
-            <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-gray-50">
+            <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-background-light">
               <Text className="text-sm font-semibold text-gray-900">
                 Members ({members.length})
               </Text>
@@ -669,7 +669,7 @@ export default function CommunityDetailScreen() {
         onRequestClose={() => setShowCreateChannel(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
+          <View className="bg-background-light rounded-t-3xl p-6">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-xl font-bold text-gray-900">Create Channel</Text>
               <TouchableOpacity onPress={() => setShowCreateChannel(false)}>
@@ -681,7 +681,7 @@ export default function CommunityDetailScreen() {
               onChangeText={setNewChannelName}
               placeholder="Channel name"
               placeholderTextColor="#9CA3AF"
-              className="bg-gray-100 rounded-xl px-4 py-3 mb-4 text-gray-900"
+              className="bg-background-light rounded-xl px-4 py-3 mb-4 text-gray-900"
               autoFocus
               maxLength={50}
             />

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFollow } from '@/contexts/FollowContext';
-import { Product, User } from '@/types';
+import { Product, User, Post } from '@/types';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const GRID_ITEM_SIZE = (SCREEN_WIDTH - 48) / 3; // 3 columns with padding
 
 type SellerProduct = Product & {
   seller: Pick<User, 'id' | 'name' | 'profile_pic_url' | 'is_verified_seller' | 'seller_rating' | 'review_count'> | null;
@@ -19,6 +22,7 @@ export default function PublicProfileScreen() {
   const { isFollowing, followUser, unfollowUser } = useFollow();
   const [profile, setProfile] = useState<User | null>(null);
   const [listings, setListings] = useState<SellerProduct[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [followingLoading, setFollowingLoading] = useState(false);
@@ -26,6 +30,7 @@ export default function PublicProfileScreen() {
   const [reportReason, setReportReason] = useState('');
   const [reportDescription, setReportDescription] = useState('');
   const [reporting, setReporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'posts' | 'listings'>('posts');
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -36,7 +41,6 @@ export default function PublicProfileScreen() {
     }
 
     return () => {
-      // Cleanup real-time listener
       if (cleanup) {
         cleanup();
       }
@@ -48,7 +52,11 @@ export default function PublicProfileScreen() {
     setError(null);
 
     try {
-      const [{ data: userData, error: userError }, { data: productsData, error: productsError }] = await Promise.all([
+      const [
+        { data: userData, error: userError },
+        { data: productsData, error: productsError },
+        { data: postsData, error: postsError }
+      ] = await Promise.all([
         supabase
           .from('users')
           .select('*')
@@ -70,14 +78,21 @@ export default function PublicProfileScreen() {
           .eq('seller_id', targetUserId)
           .eq('status', 'active')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('posts')
+          .select('*')
+          .eq('author_id', targetUserId)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
       ]);
 
-      if (userError || productsError) {
-        throw userError || productsError;
+      if (userError || productsError || postsError) {
+        throw userError || productsError || postsError;
       }
 
       setProfile(userData);
       setListings((productsData || []) as SellerProduct[]);
+      setPosts(postsData || []);
     } catch (err: any) {
       console.error('Error loading public profile:', err);
       setError(err.message || 'Failed to load profile');
@@ -121,7 +136,6 @@ export default function PublicProfileScreen() {
         },
         (payload) => {
           console.log('Follow change received for this user:', payload);
-          // Reload profile to get updated follower count
           if (targetUserId) {
             fetchProfile(targetUserId);
           }
@@ -134,10 +148,6 @@ export default function PublicProfileScreen() {
     };
   };
 
-  const handleOpenProduct = (productId: string) => {
-    router.push(`/product/${productId}`);
-  };
-
   const handleFollow = async () => {
     if (!user || !userId || user.id === userId) return;
 
@@ -145,7 +155,6 @@ export default function PublicProfileScreen() {
       setFollowingLoading(true);
       const wasFollowing = isFollowing(userId);
       
-      // Optimistically update follower count immediately
       if (profile) {
         setProfile({
           ...profile,
@@ -162,7 +171,6 @@ export default function PublicProfileScreen() {
       }
     } catch (error: any) {
       console.error('Error following/unfollowing:', error);
-      // Revert optimistic update on error
       if (profile && userId) {
         const wasFollowing = isFollowing(userId);
         setProfile({
@@ -206,6 +214,66 @@ export default function PublicProfileScreen() {
     }
   };
 
+  const formatPhoneNumber = (phone: string | null | undefined) => {
+    if (!phone) return 'Not provided';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
+  const renderPostGridItem = ({ item, index }: { item: Post; index: number }) => {
+    const imageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
+    
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={{ width: GRID_ITEM_SIZE, height: GRID_ITEM_SIZE, marginBottom: 2 }}
+        onPress={() => {
+          console.log('Navigate to post:', item.id);
+        }}
+      >
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-full bg-background-light items-center justify-center">
+            {item.post_type === 'blog' && <Ionicons name="document-text-outline" size={32} color="#9CA3AF" />}
+            {item.post_type === 'video' && <Ionicons name="videocam-outline" size={32} color="#9CA3AF" />}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderProductGridItem = ({ item, index }: { item: typeof listings[0]; index: number }) => {
+    const imageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
+    
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={{ width: GRID_ITEM_SIZE, height: GRID_ITEM_SIZE, marginBottom: 2 }}
+        onPress={() => router.push(`/product/${item.id}`)}
+      >
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-full bg-background-light items-center justify-center">
+            <Ionicons name="cube-outline" size={32} color="#9CA3AF" />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
   const isOwnProfile = user?.id === userId;
   const currentlyFollowing = isFollowing(userId || '');
 
@@ -237,7 +305,7 @@ export default function PublicProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-100 flex-row items-center">
+      <View className="bg-background px-4 py-3 border-b border-gray-100 flex-row items-center">
         <TouchableOpacity onPress={handleBack} className="p-2 -ml-2 mr-2">
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
@@ -255,42 +323,76 @@ export default function PublicProfileScreen() {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Profile Card */}
-        <View className="bg-white mt-4 mx-4 rounded-2xl p-6 shadow-sm border border-gray-100">
-          <View className="items-center">
-            <View className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center mb-4 overflow-hidden">
-              {profile.profile_pic_url ? (
-                <Image source={{ uri: profile.profile_pic_url }} className="w-full h-full rounded-full" />
-              ) : (
-                <Ionicons name="person" size={48} color="#9CA3AF" />
-              )}
-            </View>
+        {/* Banner Image */}
+        <View className="relative h-48 bg-primary/20 overflow-hidden">
+        </View>
 
-            <View className="flex-row items-center mb-2">
-              <Text className="text-2xl font-bold text-gray-900">
-                {profile.name || profile.email?.split('@')[0] || 'User'}
-              </Text>
-              {profile.is_verified_seller && (
-                <View className="ml-2 bg-blue-500 rounded-full p-1">
-                  <Ionicons name="checkmark" size={16} color="white" />
-                </View>
-              )}
-            </View>
-
-            <Text className="text-sm text-gray-600">{profile.email}</Text>
-
-            {profile.bio && (
-              <Text className="text-sm text-gray-600 text-center mt-4">{profile.bio}</Text>
+        {/* Profile Picture */}
+        <View className="items-center -mt-16 mb-4">
+          <View className="w-32 h-32 rounded-full bg-background-light items-center justify-center overflow-hidden border-4 border-background shadow-lg">
+            {profile.profile_pic_url ? (
+              <Image source={{ uri: profile.profile_pic_url }} className="w-full h-full rounded-full" />
+            ) : (
+              <Ionicons name="person" size={64} color="#9CA3AF" />
             )}
+          </View>
+        </View>
 
-            {/* Follow Button (if not own profile) */}
-            {!isOwnProfile && user && (
+        {/* User Information */}
+        <View className="px-4 mb-4">
+          <View className="flex-row items-center justify-center mb-2">
+            <Text className="text-2xl font-bold text-gray-900">
+              {profile.name || profile.email?.split('@')[0] || 'User'}
+            </Text>
+            {profile.is_verified_seller && (
+              <View className="ml-2 w-5 h-5 bg-black rounded-full items-center justify-center">
+                <Ionicons name="checkmark" size={12} color="white" />
+              </View>
+            )}
+          </View>
+
+          <Text className="text-sm text-gray-600 text-center mb-4">
+            @{profile.name?.toLowerCase().replace(/\s+/g, '_') || profile.email?.split('@')[0] || 'user'}
+          </Text>
+
+          {/* Location */}
+          {profile.address && (
+            <Text className="text-sm text-gray-700 text-center mb-3">{profile.address}</Text>
+          )}
+
+          {/* Phone and Email */}
+          <View className="mb-4">
+            {profile.phone && (
+              <View className="flex-row items-center justify-center mb-2">
+                <Ionicons name="call-outline" size={16} color="#6B7280" />
+                <Text className="text-sm text-gray-700 ml-2">{formatPhoneNumber(profile.phone)}</Text>
+              </View>
+            )}
+            {profile.email && (
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="mail-outline" size={16} color="#6B7280" />
+                <Text className="text-sm text-gray-700 ml-2">{profile.email}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Action Buttons (if not own profile) */}
+          {!isOwnProfile && user && (
+            <View className="flex-row items-center justify-center gap-3 mb-4">
+              <TouchableOpacity
+                onPress={() => router.push(`/messages?userId=${userId}`)}
+                className="w-10 h-10 rounded-full bg-background-light items-center justify-center"
+                activeOpacity={0.7}
+              >
+                <Ionicons name="chatbubble-outline" size={20} color="#374151" />
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleFollow}
                 disabled={followingLoading}
-                className={`mt-4 px-6 py-2 rounded-xl ${
-                  currentlyFollowing ? 'bg-gray-200' : 'bg-primary'
+                className={`px-6 py-2 rounded-xl ${
+                  currentlyFollowing ? 'bg-background-light' : 'bg-primary'
                 }`}
+                activeOpacity={0.7}
               >
                 {followingLoading ? (
                   <ActivityIndicator size="small" color={currentlyFollowing ? '#6B7280' : 'white'} />
@@ -300,105 +402,110 @@ export default function PublicProfileScreen() {
                   </Text>
                 )}
               </TouchableOpacity>
-            )}
-
-            <View className="flex-row mt-4 gap-6">
               <TouchableOpacity
-                className="items-center"
-                onPress={() => router.push(`/profile/followers/${userId}`)}
+                onPress={() => Alert.alert('Share', 'Share profile')}
+                className="w-10 h-10 rounded-full bg-background-light items-center justify-center"
                 activeOpacity={0.7}
               >
-                <Text className="text-xl font-bold text-gray-900">{profile.follower_count || 0}</Text>
-                <Text className="text-xs text-gray-600">Followers</Text>
+                <Ionicons name="share-outline" size={20} color="#374151" />
               </TouchableOpacity>
-              <TouchableOpacity
-                className="items-center"
-                onPress={() => router.push(`/profile/following/${userId}`)}
-                activeOpacity={0.7}
-              >
-                <Text className="text-xl font-bold text-gray-900">{profile.following_count || 0}</Text>
-                <Text className="text-xs text-gray-600">Following</Text>
-              </TouchableOpacity>
-              <View className="items-center">
-                <Text className="text-xl font-bold text-gray-900">
-                  {profile.seller_rating && profile.seller_rating > 0 
-                    ? profile.seller_rating.toFixed(1) 
-                    : 'Unrated'}
-                </Text>
-                <Text className="text-xs text-gray-600">Rating</Text>
-              </View>
             </View>
-          </View>
-        </View>
-
-        {/* Sell Orders */}
-        <View className="bg-white mt-4 mx-4 rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-bold text-gray-900">Active Sell Orders</Text>
-            <Text className="text-sm text-gray-500">{listings.length} items</Text>
-          </View>
-
-          {listings.length === 0 ? (
-            <View className="items-center justify-center py-8 bg-background rounded-xl">
-              <Ionicons name="cube-outline" size={40} color="#D1D5DB" />
-              <Text className="text-sm text-gray-500 mt-3">No active sell orders</Text>
-            </View>
-          ) : (
-            listings.map((product, index) => {
-              const isLast = index === listings.length - 1;
-              return (
-              <TouchableOpacity
-                key={product.id}
-                className={`flex-row items-center mb-4 pb-4 border-b border-gray-100 ${
-                  isLast ? 'border-b-0 mb-0 pb-0' : ''
-                }`}
-                activeOpacity={0.8}
-                onPress={() => handleOpenProduct(product.id)}
-              >
-                <View className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden mr-3">
-                  {product.images && product.images.length > 0 && product.images[0] ? (
-                    <Image source={{ uri: product.images[0] }} className="w-full h-full" resizeMode="cover" />
-                  ) : (
-                    <View className="w-full h-full items-center justify-center bg-green-50">
-                      <Ionicons name="image-outline" size={24} color="#9CA3AF" />
-                    </View>
-                  )}
-                </View>
-
-                <View className="flex-1">
-                  <Text className="text-base font-semibold text-gray-900" numberOfLines={1}>
-                    {product.title || 'Untitled Product'}
-                  </Text>
-                  <Text className="text-sm text-gray-500 mt-1" numberOfLines={2}>
-                    {product.description || 'No description provided.'}
-                  </Text>
-                  <View className="flex-row items-center justify-between mt-2">
-                    <Text className="text-lg font-bold text-primary">
-                      ${product.price.toFixed(2)}
-                      <Text className="text-xs text-gray-500 font-normal">
-                        /{product.unit_of_measure || 'unit'}
-                      </Text>
-                    </Text>
-                    <View
-                      className={`px-2 py-1 rounded-full ${
-                        (product.quantity_available || 0) < 10 ? 'bg-orange-100' : 'bg-green-100'
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs font-semibold ${
-                          (product.quantity_available || 0) < 10 ? 'text-orange-700' : 'text-green-700'
-                        }`}
-                      >
-                        {product.quantity_available || 0} in stock
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            );
-            })
           )}
+
+          {/* Stats */}
+          <View className="flex-row justify-center gap-8 mt-4 mb-4">
+            <TouchableOpacity
+              className="items-center"
+              onPress={() => router.push(`/profile/followers/${userId}`)}
+              activeOpacity={0.7}
+            >
+              <Text className="text-xl font-bold text-gray-900">{profile.follower_count || 0}</Text>
+              <Text className="text-xs text-gray-600 mt-1">Followers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="items-center"
+              onPress={() => router.push(`/profile/following/${userId}`)}
+              activeOpacity={0.7}
+            >
+              <Text className="text-xl font-bold text-gray-900">{profile.following_count || 0}</Text>
+              <Text className="text-xs text-gray-600 mt-1">Following</Text>
+            </TouchableOpacity>
+            <View className="items-center">
+              <Text className="text-xl font-bold text-gray-900">
+                {profile.seller_rating && profile.seller_rating > 0 
+                  ? profile.seller_rating.toFixed(1) 
+                  : 'Unrated'}
+              </Text>
+              {profile.review_count && profile.review_count > 0 ? (
+                <Text className="text-xs text-gray-600 mt-1">({profile.review_count})</Text>
+              ) : (
+                <Text className="text-xs text-gray-600 mt-1">Rating</Text>
+              )}
+            </View>
+          </View>
+
+          {/* Tabs */}
+          <View className="flex-row border-b border-gray-200 mb-4 mt-4">
+            <TouchableOpacity
+              className={`flex-1 py-3 items-center ${
+                activeTab === 'posts' ? 'border-b-2 border-primary' : ''
+              }`}
+              onPress={() => setActiveTab('posts')}
+              activeOpacity={0.7}
+            >
+              <Text className={`font-semibold ${activeTab === 'posts' ? 'text-primary' : 'text-gray-500'}`}>
+                Posts
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className={`flex-1 py-3 items-center ${
+                activeTab === 'listings' ? 'border-b-2 border-primary' : ''
+              }`}
+              onPress={() => setActiveTab('listings')}
+              activeOpacity={0.7}
+            >
+              <Text className={`font-semibold ${activeTab === 'listings' ? 'text-primary' : 'text-gray-500'}`}>
+                Active Listings
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Content Grid */}
+          <View className="flex-row flex-wrap mb-6">
+            {activeTab === 'posts' ? (
+              posts.length > 0 ? (
+                <FlatList
+                  data={posts}
+                  renderItem={renderPostGridItem}
+                  keyExtractor={(item) => item.id}
+                  numColumns={3}
+                  scrollEnabled={false}
+                  columnWrapperStyle={{ gap: 2 }}
+                />
+              ) : (
+                <View className="w-full py-8 items-center">
+                  <Ionicons name="images-outline" size={48} color="#D1D5DB" />
+                  <Text className="text-gray-500 mt-2">No posts yet</Text>
+                </View>
+              )
+            ) : (
+              listings.length > 0 ? (
+                <FlatList
+                  data={listings}
+                  renderItem={renderProductGridItem}
+                  keyExtractor={(item) => item.id}
+                  numColumns={3}
+                  scrollEnabled={false}
+                  columnWrapperStyle={{ gap: 2 }}
+                />
+              ) : (
+                <View className="w-full py-8 items-center">
+                  <Ionicons name="cube-outline" size={48} color="#D1D5DB" />
+                  <Text className="text-gray-500 mt-2">No active listings</Text>
+                </View>
+              )
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -410,7 +517,7 @@ export default function PublicProfileScreen() {
         onRequestClose={() => setShowReportModal(false)}
       >
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
+          <View className="bg-background-light rounded-t-3xl p-6 max-h-[80%]">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-xl font-bold text-gray-900">Report Account</Text>
               <TouchableOpacity onPress={() => setShowReportModal(false)}>
@@ -421,7 +528,7 @@ export default function PublicProfileScreen() {
             <View className="mb-4">
               <Text className="text-sm font-semibold text-gray-700 mb-2">Reason *</Text>
               <TextInput
-                className="bg-gray-100 rounded-xl px-4 py-3 text-base border border-gray-200"
+                className="bg-background-light rounded-xl px-4 py-3 text-base border border-gray-200"
                 placeholder="e.g., Spam, Harassment, Inappropriate content..."
                 placeholderTextColor="#9CA3AF"
                 value={reportReason}
@@ -432,7 +539,7 @@ export default function PublicProfileScreen() {
             <View className="mb-6">
               <Text className="text-sm font-semibold text-gray-700 mb-2">Additional Details</Text>
               <TextInput
-                className="bg-gray-100 rounded-xl px-4 py-3 h-24 text-base border border-gray-200"
+                className="bg-background-light rounded-xl px-4 py-3 h-24 text-base border border-gray-200"
                 placeholder="Provide more information (optional)"
                 placeholderTextColor="#9CA3AF"
                 value={reportDescription}
@@ -448,7 +555,7 @@ export default function PublicProfileScreen() {
                   setReportReason('');
                   setReportDescription('');
                 }}
-                className="flex-1 bg-gray-200 px-4 py-3 rounded-xl"
+                className="flex-1 bg-background-light px-4 py-3 rounded-xl"
               >
                 <Text className="text-center font-semibold text-gray-700">Cancel</Text>
               </TouchableOpacity>
@@ -472,4 +579,3 @@ export default function PublicProfileScreen() {
     </SafeAreaView>
   );
 }
-

@@ -181,7 +181,7 @@ export default function CreateCommunityScreen() {
         <View className="mb-6 items-center">
           <TouchableOpacity
             onPress={pickImage}
-            className="w-32 h-32 rounded-2xl bg-gray-100 items-center justify-center border-2 border-dashed border-gray-300"
+            className="w-32 h-32 rounded-2xl bg-background-light items-center justify-center border-2 border-dashed border-gray-300"
           >
             {selectedImage ? (
               <Image
@@ -220,7 +220,7 @@ export default function CreateCommunityScreen() {
             placeholder="e.g., Austin Urban Farm"
             placeholderTextColor="#9CA3AF"
             maxLength={50}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900"
+            className="bg-background-light border border-gray-200 rounded-xl px-4 py-3 text-gray-900"
           />
           <Text className="text-xs text-gray-500 mt-1">{name.length}/50</Text>
         </View>
@@ -237,7 +237,7 @@ export default function CreateCommunityScreen() {
             numberOfLines={4}
             maxLength={500}
             textAlignVertical="top"
-            className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 min-h-[100]"
+            className="bg-background-light border border-gray-200 rounded-xl px-4 py-3 text-gray-900 min-h-[100]"
           />
           <Text className="text-xs text-gray-500 mt-1">{description.length}/500</Text>
         </View>
@@ -253,7 +253,7 @@ export default function CreateCommunityScreen() {
                 className={`mr-2 px-4 py-2 rounded-full border ${
                   category === cat
                     ? 'bg-primary border-primary'
-                    : 'bg-white border-gray-300'
+                    : 'bg-background-light border-gray-300'
                 }`}
               >
                 <Text

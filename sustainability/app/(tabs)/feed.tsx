@@ -21,12 +21,14 @@ export default function FeedScreen() {
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null); // comment ID being replied to
   const [commentLikes, setCommentLikes] = useState<Record<string, string[]>>({});
 
+  // Set up real-time listener for comment likes
   useEffect(() => {
     if (!selectedPost || commentModalVisible === false) return;
 
+    
     const commentLikesChannel = supabase
       .channel(`comment_likes_realtime_${selectedPost.id}`)
       .on(
@@ -37,6 +39,9 @@ export default function FeedScreen() {
           table: 'comment_likes',
         },
         async (payload: any) => {
+          console.log('Comment likes real-time update:', payload);
+          
+          // Reload comment likes for the currently open post
           if (selectedPost && comments[selectedPost.id]) {
             const allComments = comments[selectedPost.id].flatMap(c => [c, ...((c as any).replies || [])]);
             const likesMap: Record<string, string[]> = {};
@@ -59,6 +64,7 @@ export default function FeedScreen() {
     };
   }, [selectedPost, commentModalVisible, comments, getCommentLikes]);
 
+  // Load likes for all posts on mount and when posts change
   useEffect(() => {
     const loadLikes = async () => {
       const likesMap: Record<string, string[]> = {};
@@ -107,12 +113,14 @@ export default function FeedScreen() {
     setCommentModalVisible(true);
     setReplyingTo(null);
     
+    // Load comments for this post
     const postComments = await getPostComments(post.id);
     setComments((prev) => ({
       ...prev,
       [post.id]: postComments,
     }));
 
+    // Load comment likes
     const loadCommentLikes = async () => {
       const likesMap: Record<string, string[]> = {};
       const allComments = postComments.flatMap(c => [c, ...((c as any).replies || [])]);
@@ -135,12 +143,14 @@ export default function FeedScreen() {
 
     await addComment(selectedPost.id, newComment, replyingTo || undefined);
     
+    // Reload comments
     const postComments = await getPostComments(selectedPost.id);
     setComments((prev) => ({
       ...prev,
       [selectedPost.id]: postComments,
     }));
 
+    // Reload comment likes
     const loadCommentLikes = async () => {
       const likesMap: Record<string, string[]> = {};
       const allComments = postComments.flatMap(c => [c, ...((c as any).replies || [])]);
@@ -181,9 +191,11 @@ export default function FeedScreen() {
     try {
       const authorName = (post as any).users?.name || (post as any).users?.email?.split('@')[0] || 'Unknown User';
       
+      // Build simple share message
       let message = post.title.trim();
       
       if (post.description && post.description.trim()) {
+        // Remove any trailing ellipsis from description
         let desc = post.description.trim();
         if (desc.endsWith('...')) {
           desc = desc.slice(0, -3).trim();
@@ -202,10 +214,20 @@ export default function FeedScreen() {
       
       message += `\nPosted by ${authorName}`;
 
-      await Share.share({
+      const result = await Share.share({
         message: message,
         title: post.title,
       });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared via:', result.activityType);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to share post');
     }
@@ -217,20 +239,25 @@ export default function FeedScreen() {
     const userLikes = commentLikes[commentId] || [];
     const isLiked = userLikes.includes(user.id);
 
+    // Optimistically update UI immediately (before API call)
     if (isLiked) {
+      // Unlike: remove user from likes and decrement count
       setCommentLikes((prev) => ({
         ...prev,
         [commentId]: (prev[commentId] || []).filter((id) => id !== user.id),
       }));
       
+      // Update comment like_count optimistically
       setComments((prev) => {
         const postComments = prev[selectedPost.id] || [];
         return {
           ...prev,
           [selectedPost.id]: postComments.map((comment: any) => {
+            // Update main comment
             if (comment.id === commentId) {
               return { ...comment, like_count: Math.max(0, (comment.like_count || 0) - 1) };
             }
+            // Update replies
             if (comment.replies) {
               return {
                 ...comment,
@@ -248,19 +275,23 @@ export default function FeedScreen() {
       
       await unlikeComment(commentId);
     } else {
+      // Like: add user to likes and increment count
       setCommentLikes((prev) => ({
         ...prev,
         [commentId]: [...(prev[commentId] || []), user.id],
       }));
       
+      // Update comment like_count optimistically
       setComments((prev) => {
         const postComments = prev[selectedPost.id] || [];
         return {
           ...prev,
           [selectedPost.id]: postComments.map((comment: any) => {
+            // Update main comment
             if (comment.id === commentId) {
               return { ...comment, like_count: (comment.like_count || 0) + 1 };
             }
+            // Update replies
             if (comment.replies) {
               return {
                 ...comment,
@@ -285,14 +316,15 @@ export default function FeedScreen() {
     const isLiked = user?.id && userLikes.includes(user.id);
 
     return (
-      <View className="bg-white border-b border-gray-200 pb-4 mb-4">
+      <View className="border-b border-gray-200 pb-4 mb-4">
+        {/* User Header */}
         <View className="flex-row items-center px-4 py-3">
           <TouchableOpacity
             className="flex-row items-center flex-1"
             activeOpacity={0.8}
             onPress={() => goToProfile((item as any).users?.id || item.author_id)}
           >
-            <View className="w-10 h-10 rounded-full bg-gray-200 mr-3 items-center justify-center overflow-hidden">
+            <View className="w-10 h-10 rounded-full bg-background-light mr-3 items-center justify-center overflow-hidden">
               {(item as any).users?.profile_pic_url ? (
                 <Image
                   source={{ uri: (item as any).users.profile_pic_url }}
@@ -314,6 +346,7 @@ export default function FeedScreen() {
           <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
         </View>
 
+        {/* Post Content */}
         {item.post_type === 'blog' && item.content_markdown && (
           <View className="px-4 py-2">
             <Text className="text-xl font-bold text-gray-900 mb-2">{item.title}</Text>
@@ -322,13 +355,13 @@ export default function FeedScreen() {
         )}
 
         {item.post_type === 'image' && item.images && item.images.length > 0 && (
-          <View className="bg-gray-50 h-64">
+          <View className="bg-background-light h-64">
             <Image source={{ uri: item.images[0] }} className="w-full h-full" resizeMode="cover" />
           </View>
         )}
 
         {(item.post_type === 'video' || item.post_type === 'short_video' || item.post_type === 'long_video') && (
-          <View className="bg-gray-50 h-64 items-center justify-center">
+          <View className="bg-background-light h-64 items-center justify-center">
             {item.video_url ? (
               <Text className="text-gray-500">Video: {item.video_url}</Text>
             ) : (
@@ -337,6 +370,7 @@ export default function FeedScreen() {
           </View>
         )}
         
+        {/* Actions */}
         <View className="flex-row items-center px-4 py-2">
           <TouchableOpacity
             onPress={() => handleLike(item.id)}
@@ -368,6 +402,7 @@ export default function FeedScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Caption */}
         <View className="px-4">
           <Text className="text-base font-semibold text-gray-900 mb-1">{item.title}</Text>
           {item.description && (
@@ -387,21 +422,30 @@ export default function FeedScreen() {
     );
   };
 
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <View className="bg-background px-4 py-3 border-b border-gray-100">
+      <View className="bg-background px-6 pt-4 pb-3">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-3xl font-black text-gray-900">Feed</Text>
-          <TouchableOpacity 
+          <View className="flex-row items-center">
+            <Image
+              source={require('@/assets/logos/logo.png')}
+              style={{ width: 32, height: 32, tintColor: '#4A6B3C' }}
+              resizeMode="contain"
+            />
+            <Text className="text-3xl font-black text-primary ml-2">HomeGrown</Text>
+          </View>
+          <TouchableOpacity
             onPress={() => router.push('/createPost')}
-            className="bg-primary px-4 py-2 rounded-xl flex-row items-center"
+            className="bg-primary px-3 py-2 rounded-xl"
+            activeOpacity={0.8}
           >
-            <Ionicons name="add-circle" size={20} color="white" />
-            <Text className="text-white font-semibold ml-2">Post</Text>
+            <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* Loading State */}
       {loading && !refreshing ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#8FAA7C" />
@@ -432,6 +476,7 @@ export default function FeedScreen() {
             }
           />
 
+          {/* Comments Modal - Half Screen Bottom Sheet */}
           <Modal
             visible={commentModalVisible}
             animationType="slide"
@@ -441,7 +486,7 @@ export default function FeedScreen() {
               setReplyingTo(null);
             }}
           >
-            <View className="flex-1 justify-end bg-black/50">
+            <View className="flex-1 justify-end bg-black/50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
               <TouchableOpacity 
                 className="flex-1" 
                 activeOpacity={1} 
@@ -451,10 +496,11 @@ export default function FeedScreen() {
                 }}
               />
               <View 
-                className="bg-white rounded-t-3xl"
+                className="bg-background rounded-t-3xl"
                 style={{ height: SCREEN_HEIGHT * 0.6, maxHeight: SCREEN_HEIGHT * 0.9 }}
               >
                 <SafeAreaView className="flex-1" edges={['bottom']}>
+                  {/* Header */}
                   <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
                     <Text className="text-xl font-bold text-gray-900">Comments</Text>
                     <TouchableOpacity 
@@ -480,12 +526,13 @@ export default function FeedScreen() {
 
                         return (
                           <View key={comment.id} className="mb-4 pb-4 border-b border-gray-100">
+                            {/* Main Comment */}
                             <View className="flex-row">
                               <TouchableOpacity
                                 onPress={() => goToProfile((comment as any).users?.id)}
                                 activeOpacity={0.8}
                               >
-                                <View className="w-8 h-8 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
+                                <View className="w-8 h-8 rounded-full bg-background-light mr-2 items-center justify-center overflow-hidden">
                                   {(comment as any).users?.profile_pic_url ? (
                                     <Image
                                       source={{ uri: (comment as any).users.profile_pic_url }}
@@ -535,6 +582,7 @@ export default function FeedScreen() {
                                   </TouchableOpacity>
                                 </View>
 
+                                {/* Replies */}
                                 {replies.length > 0 && (
                                   <View className="mt-3 ml-2 pl-2 border-l-2 border-gray-200">
                                     {replies.map((reply: Comment) => {
@@ -549,7 +597,7 @@ export default function FeedScreen() {
                                               activeOpacity={0.7}
                                               className="flex-row items-center mr-2"
                                             >
-                                              <View className="w-6 h-6 rounded-full bg-gray-200 mr-2 items-center justify-center overflow-hidden">
+                                              <View className="w-6 h-6 rounded-full bg-background-light mr-2 items-center justify-center overflow-hidden">
                                                 {(reply as any).users?.profile_pic_url ? (
                                                   <Image
                                                     source={{ uri: (reply as any).users.profile_pic_url }}
@@ -607,9 +655,10 @@ export default function FeedScreen() {
                   )}
                     </ScrollView>
 
-                    <View className="border-t border-gray-200 px-4 py-3 bg-white">
+                    {/* Input Section */}
+                    <View className="border-t border-gray-200 px-4 py-3 bg-background">
                       {replyingTo && (
-                        <View className="flex-row items-center mb-2 px-2 py-1 bg-gray-100 rounded-lg">
+                        <View className="flex-row items-center mb-2 px-2 py-1 bg-background-light rounded-lg">
                           <Ionicons name="arrow-undo" size={14} color="#6B7280" />
                           <Text className="text-xs text-gray-600 ml-2">Replying to comment</Text>
                           <TouchableOpacity onPress={() => setReplyingTo(null)} className="ml-auto">
@@ -619,7 +668,7 @@ export default function FeedScreen() {
                       )}
                       <View className="flex-row items-center">
                         <TextInput
-                          className="flex-1 bg-gray-100 rounded-xl px-4 py-2 mr-2"
+                          className="flex-1 bg-background-light rounded-xl px-4 py-2 mr-2"
                           placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
                           placeholderTextColor="#9CA3AF"
                           value={newComment}

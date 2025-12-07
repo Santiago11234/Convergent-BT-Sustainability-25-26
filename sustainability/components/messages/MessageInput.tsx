@@ -62,7 +62,7 @@ export function MessageInput({ onSend, sending }: MessageInputProps) {
   const hasContent = text.trim() || selectedImages.length > 0;
 
   return (
-    <View className="bg-white border-t border-gray-200">
+    <View className="bg-background-light border-t border-gray-200">
       {/* Selected Images Preview */}
       {selectedImages.length > 0 && (
         <ScrollView 

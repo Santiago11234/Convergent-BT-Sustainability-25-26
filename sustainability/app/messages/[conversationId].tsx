@@ -165,7 +165,7 @@ export default function ChatScreen() {
             />
           )}
           keyExtractor={(item) => item.id}
-          className="flex-1 bg-gray-50 px-4"
+          className="flex-1 bg-background-light px-4"
           contentContainerStyle={{ paddingVertical: 16 }}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}

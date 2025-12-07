@@ -158,7 +158,7 @@ export default function CreatePostScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4 pt-4 bg-white">
+      <ScrollView className="flex-1 px-4 pt-4 bg-background-light">
         {/* Post Type Selector */}
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Post Type</Text>
@@ -166,7 +166,7 @@ export default function CreatePostScreen() {
             <TouchableOpacity
               onPress={() => setPostType('blog')}
               className={`flex-1 py-3 px-4 rounded-xl border-2 ${
-                postType === 'blog' ? 'bg-primary border-primary' : 'bg-white border-gray-200'
+                postType === 'blog' ? 'bg-primary border-primary' : 'bg-background-light border-gray-200'
               }`}
             >
               <Text className={`text-center font-semibold ${postType === 'blog' ? 'text-white' : 'text-gray-700'}`}>
@@ -176,7 +176,7 @@ export default function CreatePostScreen() {
             <TouchableOpacity
               onPress={() => setPostType('image')}
               className={`flex-1 py-3 px-4 rounded-xl border-2 ${
-                postType === 'image' ? 'bg-primary border-primary' : 'bg-white border-gray-200'
+                postType === 'image' ? 'bg-primary border-primary' : 'bg-background-light border-gray-200'
               }`}
             >
               <Text className={`text-center font-semibold ${postType === 'image' ? 'text-white' : 'text-gray-700'}`}>
@@ -186,7 +186,7 @@ export default function CreatePostScreen() {
             <TouchableOpacity
               onPress={() => setPostType('video')}
               className={`flex-1 py-3 px-4 rounded-xl border-2 ${
-                postType === 'video' ? 'bg-primary border-primary' : 'bg-white border-gray-200'
+                postType === 'video' ? 'bg-primary border-primary' : 'bg-background-light border-gray-200'
               }`}
             >
               <Text className={`text-center font-semibold ${postType === 'video' ? 'text-white' : 'text-gray-700'}`}>
@@ -200,7 +200,7 @@ export default function CreatePostScreen() {
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Title *</Text>
           <TextInput
-            className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
+            className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
             placeholder="Enter post title..."
             placeholderTextColor="#9CA3AF"
             value={title}
@@ -212,7 +212,7 @@ export default function CreatePostScreen() {
         <View className="mb-4">
           <Text className="text-lg font-semibold text-gray-800 mb-3">Description</Text>
           <TextInput
-            className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3 h-24 text-base"
+            className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-3 h-24 text-base"
             placeholder="Brief description..."
             placeholderTextColor="#9CA3AF"
             value={description}
@@ -226,7 +226,7 @@ export default function CreatePostScreen() {
           <View className="mb-4">
             <Text className="text-lg font-semibold text-gray-800 mb-3">Content *</Text>
             <TextInput
-              className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3 h-48 text-base"
+              className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-3 h-48 text-base"
               placeholder="Write your blog post..."
               placeholderTextColor="#9CA3AF"
               value={content}
@@ -277,7 +277,7 @@ export default function CreatePostScreen() {
             </TouchableOpacity>
             
             {videoUrl && (
-              <View className="mt-3 p-3 bg-gray-100 rounded-xl">
+              <View className="mt-3 p-3 bg-background-light rounded-xl">
                 <Text className="text-sm text-gray-700">Video selected</Text>
               </View>
             )}
@@ -298,7 +298,7 @@ export default function CreatePostScreen() {
             ))}
           </View>
           <TextInput
-            className="bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
+            className="bg-background-light border-2 border-gray-200 rounded-xl px-4 py-3 text-base"
             placeholder="Add tags (press enter)"
             placeholderTextColor="#9CA3AF"
             onSubmitEditing={(e) => {
