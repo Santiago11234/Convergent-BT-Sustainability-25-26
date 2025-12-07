@@ -376,7 +376,7 @@ npx expo start --android
 npx expo start --web
 ```
 
-## 📊 Database Schema
+##  Database Schema
 
 ### Key Relationships
 
