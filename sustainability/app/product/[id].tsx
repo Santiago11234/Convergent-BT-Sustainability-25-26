@@ -123,7 +123,7 @@ export default function ProductDetailsScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" color="#8FAA7C" />
-        <Text className="text-gray-600 mt-4">Loading product...</Text>
+        <Text className="mt-4" style={{ color: '#72522A' }}>Loading product...</Text>
       </SafeAreaView>
     );
   }
@@ -132,8 +132,8 @@ export default function ProductDetailsScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-        <Text className="text-lg font-semibold text-gray-900 mt-4">Error Loading Product</Text>
-        <Text className="text-sm text-gray-600 mt-2 text-center">{error || 'Product not found'}</Text>
+        <Text className="text-lg font-semibold mt-4" style={{ color: '#563D1F' }}>Error Loading Product</Text>
+        <Text className="text-sm mt-2 text-center" style={{ color: '#72522A' }}>{error || 'Product not found'}</Text>
         <TouchableOpacity
           className="mt-6 bg-primary px-6 py-3 rounded-xl"
           onPress={() => router.back()}
@@ -172,7 +172,7 @@ export default function ProductDetailsScreen() {
                 style={{ width, height: 350 }}
                 className="bg-background-light items-center justify-center"
               >
-                <Ionicons name="image-outline" size={64} color="#9CA3AF" />
+                <Ionicons name="image-outline" size={64} color="#563D1F" />
               </View>
             )}
           </ScrollView>
@@ -184,7 +184,7 @@ export default function ProductDetailsScreen() {
                 onPress={() => router.back()}
                 className="p-2 bg-white/90 rounded-full"
               >
-                <Ionicons name="arrow-back" size={24} color="#1F2937" />
+                <Ionicons name="arrow-back" size={24} color="#563D1F" />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -208,7 +208,7 @@ export default function ProductDetailsScreen() {
         <View className="px-5 py-4">
           {/* Title and Actions */}
           <View className="flex-row items-start justify-between mb-3">
-            <Text className="text-xl font-bold text-gray-900 flex-1 mr-2">
+            <Text className="text-xl font-bold flex-1 mr-2" style={{ color: '#563D1F' }}>
               {product.title}
             </Text>
             <View className="flex-row items-center gap-3">
@@ -216,10 +216,10 @@ export default function ProductDetailsScreen() {
                 <Text className="text-[#563D1F] font-semibold text-xs">3 days fresh</Text>
               </View>
               <TouchableOpacity>
-                <Ionicons name="share-outline" size={22} color="#6B7280" />
+                <Ionicons name="share-outline" size={22} color="#563D1F" />
               </TouchableOpacity>
               <TouchableOpacity>
-                <Ionicons name="bookmark-outline" size={22} color="#6B7280" />
+                <Ionicons name="bookmark-outline" size={22} color="#563D1F" />
               </TouchableOpacity>
             </View>
           </View>
@@ -240,10 +240,10 @@ export default function ProductDetailsScreen() {
 
           {/* Location */}
           <View className="mb-3">
-            <Text className="text-sm text-gray-700 font-medium">
+            <Text className="text-sm font-medium" style={{ color: '#563D1F' }}>
               Nearby - 1 mi
             </Text>
-            <Text className="text-sm text-gray-600 mt-1">
+            <Text className="text-sm mt-1" style={{ color: '#72522A' }}>
               {product.pickup_location || '123 Farmers Ridge Blvd'}
             </Text>
           </View>
@@ -251,8 +251,8 @@ export default function ProductDetailsScreen() {
           {/* Description */}
           {product.description && (
             <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Description</Text>
-              <Text className="text-gray-700 leading-5">{product.description}</Text>
+              <Text className="text-base font-semibold mb-2" style={{ color: '#563D1F' }}>Description</Text>
+              <Text className="leading-5" style={{ color: '#72522A' }}>{product.description}</Text>
             </View>
           )}
 
@@ -277,15 +277,15 @@ export default function ProductDetailsScreen() {
                   </View>
                 )}
                 <View className="flex-1 ml-3">
-                  <Text className="text-base font-semibold text-gray-900">
+                  <Text className="text-base font-semibold" style={{ color: '#563D1F' }}>
                     Sold by {product.seller.name}
                   </Text>
-                  <Text className="text-sm text-gray-600 mt-0.5">
+                  <Text className="text-sm mt-0.5" style={{ color: '#72522A' }}>
                     Austin, TX
                   </Text>
                   <View className="flex-row items-center mt-1">
                     {renderStars(product.seller.seller_rating || 4.5)}
-                    <Text className="text-xs text-gray-600 ml-1">
+                    <Text className="text-xs ml-1" style={{ color: '#72522A' }}>
                       ({product.seller.review_count || 238})
                     </Text>
                   </View>
@@ -295,7 +295,7 @@ export default function ProductDetailsScreen() {
                 className={`px-5 py-2 rounded-full ${isFollowing ? 'bg-gray-300' : 'bg-[#4A6B3C]'}`}
                 onPress={toggleFollow}
               >
-                <Text className={`font-semibold ${isFollowing ? 'text-gray-700' : 'text-white'}`}>
+                <Text className="font-semibold" style={{ color: isFollowing ? '#72522A' : '#FFFFFF' }}>
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
               </TouchableOpacity>
@@ -304,7 +304,7 @@ export default function ProductDetailsScreen() {
 
           {/* Send a Message */}
           <View className="mb-6">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">Send a message</Text>
+            <Text className="text-sm font-semibold mb-2" style={{ color: '#563D1F' }}>Send a message</Text>
             <View className="bg-[#8FAA7C] rounded-2xl p-3 flex-row items-center">
               <TextInput
                 className="flex-1 text-white text-sm px-2"
@@ -330,7 +330,7 @@ export default function ProductDetailsScreen() {
       {/* Bottom Action Bar */}
       <SafeAreaView edges={['bottom']} className="bg-[#F5F1E8]">
         <View className="px-5 py-3 flex-row items-center justify-between">
-          <Text className="text-3xl font-bold text-gray-900">
+          <Text className="text-3xl font-bold" style={{ color: '#563D1F' }}>
             ${product.price.toFixed(2)}
           </Text>
           <TouchableOpacity
@@ -344,3 +344,12 @@ export default function ProductDetailsScreen() {
     </View>
   );
 }
+
+
+
+
+
+
+
+
+

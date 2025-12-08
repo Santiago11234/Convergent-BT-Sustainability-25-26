@@ -6,13 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  StyleSheet,
+  Image,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  imageUri?: string;
 }
 
 interface GeminiWrapperProps {
@@ -26,6 +31,7 @@ export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-00
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasInitialized = useRef(false);
 
@@ -37,12 +43,40 @@ export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-00
     }
   }, [initialMessage, messages.length]);
 
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
 
-    const userMessage = { role: 'user', content: inputText.trim() } as Message;
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'We need camera roll permissions to upload images.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputText.trim() && !selectedImage) return;
+
+    const userContent = inputText.trim() || '';
+    const imageToSend = selectedImage;
+    
+    const userMessage: Message = { 
+      role: 'user', 
+      content: userContent || (imageToSend ? 'Photo' : ''),
+      imageUri: imageToSend || undefined
+    };
     setMessages(prev => [...prev, userMessage]);
+    
     setInputText('');
+    setSelectedImage(null);
     setIsLoading(true);
 
     try {
@@ -124,98 +158,124 @@ export default function GeminiWrapper({ apiKey, endpoint, model = 'chat-bison-00
     }
   };
 
+  const hasContent = inputText.trim() || selectedImage;
+
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
       <ScrollView
         ref={scrollViewRef}
-        style={styles.messagesContainer}
-        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+        className="flex-1 bg-background-light px-4"
+        contentContainerStyle={{ paddingVertical: 16 }}
+        showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
       >
-        {messages.map((message, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageBubble,
-              message.role === 'user' ? styles.userMessage : styles.assistantMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{message.content}</Text>
+          {messages.map((message, index) => (
+            <View
+              key={index}
+              className={`flex-row mb-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <View className={`max-w-[75%] rounded-2xl ${message.role === 'user' ? 'rounded-br-sm' : 'rounded-bl-sm'}`}>
+                {message.imageUri && (
+                  <Image
+                    source={{ uri: message.imageUri }}
+                    className="w-full h-48 rounded-t-2xl mb-1"
+                    resizeMode="cover"
+                  />
+                )}
+                <View 
+                  className={`px-3 py-2 ${message.imageUri ? 'rounded-b-2xl' : 'rounded-2xl'}`}
+                  style={message.role === 'user' 
+                    ? { backgroundColor: '#A8BF96' }
+                    : { backgroundColor: '#563D1F' }
+                  }
+                >
+                  <Text className={`text-base leading-5 ${
+                    message.role === 'user' ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    {message.content}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))}
+          {isLoading && (
+            <View className="py-4 items-center">
+              <ActivityIndicator size="small" color="#8FAA7C" />
+            </View>
+          )}
+        </ScrollView>
+
+        <View className="bg-background-light border-t border-gray-200">
+          {/* Selected Image Preview */}
+          {selectedImage && (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              className="px-4 pt-2 pb-2"
+            >
+              <View className="relative mr-2">
+                <Image
+                  source={{ uri: selectedImage }}
+                  className="w-20 h-20 rounded-lg"
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  onPress={() => setSelectedImage(null)}
+                  className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                >
+                  <Ionicons name="close" size={14} color="white" />
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          )}
+
+          <View className="flex-row items-center px-4 py-3">
+            <TouchableOpacity
+              onPress={pickImage}
+              disabled={isLoading || selectedImage !== null}
+              className="w-11 h-11 rounded-full items-center justify-center bg-gray-100 mr-2"
+            >
+              <Ionicons name="image-outline" size={22} color="#6B7280" />
+            </TouchableOpacity>
+
+            <View className="flex-1 flex-row items-center bg-background-light rounded-full px-4 py-2 mr-2 border border-gray-200">
+              <TextInput
+                className="flex-1 text-base text-gray-900"
+                style={{ color: '#111827', maxHeight: 100 }}
+                placeholder={selectedImage ? "Add a caption..." : "Type your message..."}
+                placeholderTextColor="#9CA3AF"
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={1000}
+                editable={!isLoading}
+                onSubmitEditing={sendMessage}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={sendMessage}
+              disabled={!hasContent || isLoading}
+              className={`w-11 h-11 rounded-full items-center justify-center ${
+                hasContent && !isLoading ? 'bg-primary' : 'bg-gray-200'
+              }`}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={hasContent ? '#FFFFFF' : '#9CA3AF'}
+                />
+              )}
+            </TouchableOpacity>
           </View>
-        ))}
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#0000ff" />
-          </View>
-        )}
-      </ScrollView>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Type your message..."
-          multiline
-        />
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={sendMessage}
-          disabled={!inputText.trim() || isLoading}
-        >
-          <Ionicons name="send" size={24} color={inputText.trim() ? '#8FAA7C' : '#999'} />
-        </TouchableOpacity>
-      </View>
-    </View>
+        </View>
+    </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  messagesContainer: {
-    flex: 1,
-    padding: 10,
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 8,
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#8FAA7C',
-  },
-  assistantMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0FDF4',
-  },
-  messageText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  loadingContainer: {
-    padding: 10,
-    alignItems: 'center',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E9ECEF',
-    backgroundColor: '#fff',
-  },
-  input: {
-    flex: 1,
-    marginRight: 10,
-    padding: 10,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 20,
-    maxHeight: 100,
-  },
-  sendButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
-  },
-});

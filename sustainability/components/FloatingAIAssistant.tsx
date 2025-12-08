@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Modal, Animated, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, Modal, Animated, StyleSheet, Text, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import GeminiWrapper from './GeminiWrapper';
 
@@ -100,8 +101,9 @@ export default function FloatingAIAssistant() {
         animationType="slide"
         transparent={false}
         onRequestClose={() => setIsModalVisible(false)}
+        presentationStyle="fullScreen"
       >
-        <View style={styles.modalContainer}>
+        <SafeAreaView style={styles.modalContainer} edges={['top']}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>AI Farming Assistant</Text>
             <TouchableOpacity
@@ -111,14 +113,12 @@ export default function FloatingAIAssistant() {
               <Ionicons name="close" size={28} color="#6B7280" />
             </TouchableOpacity>
           </View>
-          <View style={styles.modalContent}>
-            <GeminiWrapper 
-              endpoint={GEMINI_ENDPOINT} 
-              apiKey={GEMINI_API_KEY}
-              initialMessage="Hey! I'm your AI farming assistant. Ask me anything about farming, sustainability, or your products!"
-            />
-          </View>
-        </View>
+          <GeminiWrapper 
+            endpoint={GEMINI_ENDPOINT} 
+            apiKey={GEMINI_API_KEY}
+            initialMessage="Hey! I'm your AI farming assistant. Ask me anything about farming, sustainability, or your products!"
+          />
+        </SafeAreaView>
       </Modal>
     </>
   );
@@ -149,18 +149,18 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F1E8',
   },
   modalHeader: {
-    paddingTop: 60,
     paddingHorizontal: 20,
+    paddingTop: 5,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F1E8',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#E5E1D8',
   },
   modalTitle: {
     fontSize: 20,
@@ -169,9 +169,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
-  },
-  modalContent: {
-    flex: 1,
   },
 });
 

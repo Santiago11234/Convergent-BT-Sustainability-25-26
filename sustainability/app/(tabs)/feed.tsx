@@ -335,10 +335,10 @@ export default function FeedScreen() {
               )}
             </View>
             <View className="flex-1">
-              <Text className="font-semibold text-gray-900">
+              <Text className="font-semibold" style={{ color: '#563D1F' }}>
                 {(item as any).users?.name || (item as any).users?.email?.split('@')[0] || 'Unknown User'}
               </Text>
-              <Text className="text-xs text-gray-500">
+              <Text className="text-xs" style={{ color: '#72522A' }}>
                 {getRelativeTime(item.created_at)}
               </Text>
             </View>
@@ -349,8 +349,8 @@ export default function FeedScreen() {
         {/* Post Content */}
         {item.post_type === 'blog' && item.content_markdown && (
           <View className="px-4 py-2">
-            <Text className="text-xl font-bold text-gray-900 mb-2">{item.title}</Text>
-            <Text className="text-base text-gray-700">{item.content_markdown}</Text>
+            <Text className="text-xl font-bold mb-2" style={{ color: '#563D1F' }}>{item.title}</Text>
+            <Text className="text-base" style={{ color: '#72522A' }}>{item.content_markdown}</Text>
           </View>
         )}
 
@@ -363,7 +363,7 @@ export default function FeedScreen() {
         {(item.post_type === 'video' || item.post_type === 'short_video' || item.post_type === 'long_video') && (
           <View className="bg-background-light h-64 items-center justify-center">
             {item.video_url ? (
-              <Text className="text-gray-500">Video: {item.video_url}</Text>
+              <Text style={{ color: '#72522A' }}>Video: {item.video_url}</Text>
             ) : (
               <Ionicons name="videocam-outline" size={48} color="#9CA3AF" />
             )}
@@ -382,7 +382,7 @@ export default function FeedScreen() {
               size={24} 
               color={isLiked ? "#EF4444" : "#374151"} 
             />
-            <Text className="text-sm text-gray-600 ml-1">{item.like_count || 0}</Text>
+            <Text className="text-sm ml-1" style={{ color: '#72522A' }}>{item.like_count || 0}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -391,7 +391,7 @@ export default function FeedScreen() {
             style={{ marginLeft: 16 }}
           >
             <Ionicons name="chatbubble-outline" size={24} color="#374151" />
-            <Text className="text-sm text-gray-600 ml-1">{item.comment_count || 0}</Text>
+            <Text className="text-sm ml-1" style={{ color: '#72522A' }}>{item.comment_count || 0}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -404,9 +404,9 @@ export default function FeedScreen() {
 
         {/* Caption */}
         <View className="px-4">
-          <Text className="text-base font-semibold text-gray-900 mb-1">{item.title}</Text>
+          <Text className="text-base font-semibold mb-1" style={{ color: '#563D1F' }}>{item.title}</Text>
           {item.description && (
-            <Text className="text-sm text-gray-700">{item.description}</Text>
+            <Text className="text-sm" style={{ color: '#72522A' }}>{item.description}</Text>
           )}
           {item.tags && item.tags.length > 0 && (
             <View className="flex-row flex-wrap mt-2">
@@ -449,13 +449,13 @@ export default function FeedScreen() {
       {loading && !refreshing ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#8FAA7C" />
-          <Text className="text-gray-600 mt-4">Loading posts...</Text>
+          <Text className="mt-4" style={{ color: '#72522A' }}>Loading posts...</Text>
         </View>
       ) : posts.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Ionicons name="images-outline" size={64} color="#D1D5DB" />
-          <Text className="text-xl font-bold text-gray-400 mt-4">No Posts Yet</Text>
-          <Text className="text-sm text-gray-400 mt-2 mb-6">Be the first to share something!</Text>
+          <Text className="text-xl font-bold mt-4" style={{ color: '#72522A' }}>No Posts Yet</Text>
+          <Text className="text-sm mt-2 mb-6" style={{ color: '#72522A' }}>Be the first to share something!</Text>
           <TouchableOpacity
             onPress={() => router.push('/createPost')}
             className="bg-primary px-6 py-3 rounded-xl"
@@ -502,7 +502,7 @@ export default function FeedScreen() {
                 <SafeAreaView className="flex-1" edges={['bottom']}>
                   {/* Header */}
                   <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
-                    <Text className="text-xl font-bold text-gray-900">Comments</Text>
+                    <Text className="text-xl font-bold" style={{ color: '#563D1F' }}>Comments</Text>
                     <TouchableOpacity 
                       onPress={() => {
                         setCommentModalVisible(false);
@@ -549,15 +549,15 @@ export default function FeedScreen() {
                                     onPress={() => goToProfile((comment as any).users?.id)}
                                     activeOpacity={0.7}
                                   >
-                                    <Text className="font-semibold text-gray-900 text-sm mr-2">
+                                    <Text className="font-semibold text-sm mr-2" style={{ color: '#563D1F' }}>
                                       {(comment as any).users?.name || (comment as any).users?.email?.split('@')[0] || 'Unknown'}
                                     </Text>
                                   </TouchableOpacity>
-                                  <Text className="text-xs text-gray-500">
+                                  <Text className="text-xs" style={{ color: '#72522A' }}>
                                     {getRelativeTime(comment.created_at)}
                                   </Text>
                                 </View>
-                                <Text className="text-gray-700 mb-2">{comment.text}</Text>
+                                <Text className="mb-2" style={{ color: '#72522A' }}>{comment.text}</Text>
                                 <View className="flex-row items-center">
                                   <TouchableOpacity
                                     onPress={() => handleLikeComment(comment.id)}
@@ -569,7 +569,7 @@ export default function FeedScreen() {
                                       size={16} 
                                       color={isLiked ? "#EF4444" : "#6B7280"} 
                                     />
-                                    <Text className="text-xs text-gray-600 ml-1">
+                                    <Text className="text-xs ml-1" style={{ color: '#72522A' }}>
                                       {comment.like_count || 0}
                                     </Text>
                                   </TouchableOpacity>
@@ -578,7 +578,7 @@ export default function FeedScreen() {
                                     className="flex-row items-center"
                                   >
                                     <Ionicons name="chatbubble-outline" size={16} color="#6B7280" />
-                                    <Text className="text-xs text-gray-600 ml-1">Reply</Text>
+                                    <Text className="text-xs ml-1" style={{ color: '#72522A' }}>Reply</Text>
                                   </TouchableOpacity>
                                 </View>
 
@@ -607,15 +607,15 @@ export default function FeedScreen() {
                                                   <Ionicons name="person" size={12} color="#9CA3AF" />
                                                 )}
                                               </View>
-                                              <Text className="font-semibold text-gray-900 text-xs">
+                                              <Text className="font-semibold text-xs" style={{ color: '#563D1F' }}>
                                                 {(reply as any).users?.name || (reply as any).users?.email?.split('@')[0] || 'Unknown'}
                                               </Text>
                                             </TouchableOpacity>
-                                            <Text className="text-xs text-gray-500">
+                                            <Text className="text-xs" style={{ color: '#72522A' }}>
                                               {getRelativeTime(reply.created_at)}
                                             </Text>
                                           </View>
-                                          <Text className="text-gray-700 text-sm mb-1 ml-8">{reply.text}</Text>
+                                          <Text className="text-sm mb-1 ml-8" style={{ color: '#72522A' }}>{reply.text}</Text>
                                           <View className="flex-row items-center ml-8">
                                             <TouchableOpacity
                                               onPress={() => handleLikeComment(reply.id)}
@@ -627,14 +627,14 @@ export default function FeedScreen() {
                                                 size={14} 
                                                 color={isReplyLiked ? "#EF4444" : "#6B7280"} 
                                               />
-                                              <Text className="text-xs text-gray-600 ml-1">
+                                              <Text className="text-xs ml-1" style={{ color: '#72522A' }}>
                                                 {reply.like_count || 0}
                                               </Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                               onPress={() => setReplyingTo(reply.id)}
                                             >
-                                              <Text className="text-xs text-gray-600">Reply</Text>
+                                              <Text className="text-xs" style={{ color: '#72522A' }}>Reply</Text>
                                             </TouchableOpacity>
                                           </View>
                                         </View>
@@ -650,7 +650,7 @@ export default function FeedScreen() {
                   {selectedPost && (!comments[selectedPost.id] || comments[selectedPost.id].length === 0) && (
                     <View className="items-center justify-center py-8">
                       <Ionicons name="chatbubbles-outline" size={48} color="#D1D5DB" />
-                      <Text className="text-gray-400 mt-2">No comments yet</Text>
+                      <Text className="mt-2" style={{ color: '#72522A' }}>No comments yet</Text>
                     </View>
                   )}
                     </ScrollView>
@@ -660,7 +660,7 @@ export default function FeedScreen() {
                       {replyingTo && (
                         <View className="flex-row items-center mb-2 px-2 py-1 bg-background-light rounded-lg">
                           <Ionicons name="arrow-undo" size={14} color="#6B7280" />
-                          <Text className="text-xs text-gray-600 ml-2">Replying to comment</Text>
+                          <Text className="text-xs ml-2" style={{ color: '#72522A' }}>Replying to comment</Text>
                           <TouchableOpacity onPress={() => setReplyingTo(null)} className="ml-auto">
                             <Ionicons name="close" size={16} color="#6B7280" />
                           </TouchableOpacity>

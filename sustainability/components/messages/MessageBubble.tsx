@@ -40,9 +40,10 @@ export function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
         <View
           className={`max-w-[75%] px-3 py-2 rounded-2xl ${
             isOwnMessage
-              ? 'bg-primary rounded-br-sm'
-              : 'bg-gray-100 rounded-bl-sm'
+              ? 'bg-primary-light rounded-br-sm'
+              : 'rounded-bl-sm'
           }`}
+          style={!isOwnMessage ? { backgroundColor: '#563D1F' } : undefined}
         >
           {/* Images */}
           {images.length > 0 && (
@@ -74,9 +75,8 @@ export function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
           {/* Text */}
           {message.text && message.text.trim() && (
             <Text
-              className={`text-base leading-5 ${
-                isOwnMessage ? 'text-white' : 'text-gray-900'
-              }`}
+              className="text-base leading-5"
+              style={{ color: '#FFFFFF' }}
             >
               {message.text}
             </Text>
@@ -85,14 +85,13 @@ export function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
           {/* Timestamp and read status */}
           <View className="flex-row items-center justify-end mt-1 gap-1">
             <Text
-              className={`text-xs ${
-                isOwnMessage ? 'text-white/70' : 'text-gray-500'
-              }`}
+              className="text-xs"
+              style={{ color: 'rgba(255, 255, 255, 0.8)' }}
             >
               {formatTime(message.created_at)}
             </Text>
             {isOwnMessage && message.is_read && (
-              <Text className="text-xs text-white/70">• Read</Text>
+              <Text className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>• Read</Text>
             )}
           </View>
         </View>

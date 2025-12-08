@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
-import { supabase, Post } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { PostInsert } from '@/types'
 
 export default function PostGenerator() {
   const [title, setTitle] = useState('')
@@ -15,9 +16,25 @@ export default function PostGenerator() {
 
     setIsLoading(true)
     try {
-      const newPost: Post = {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+
+      const newPost: PostInsert = {
         title: title.trim(),
-        content: content.trim(),
+        description: content.trim(),
+        post_type: 'blog',
+        content_markdown: content.trim(),
+        author_id: user.id,
+        images: [],
+        video_url: null,
+        thumbnail_url: null,
+        duration_seconds: null,
+        tags: [],
+        is_featured: false,
+        status: 'published',
       }
 
       const { data, error } = await supabase

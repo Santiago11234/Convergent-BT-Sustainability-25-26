@@ -19,9 +19,10 @@ module.exports = {
           light: '#FAF8F3', // Lighter beige for cards
         },
         accent: {
-          brown: '#8B4F47', // Dark brown for filter tags
+          brown: '#563D1F', // Brown for inactive icons and received messages
           tan: '#C4A57F', // Khaki/tan for filter tags
           darkBrown: '#6B3A35', // Darker brown
+          original: '#8B4F47', // Original brown for filter tags
         },
       },
     },

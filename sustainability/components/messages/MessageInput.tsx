@@ -97,9 +97,10 @@ export function MessageInput({ onSend, sending }: MessageInputProps) {
           <Ionicons name="image-outline" size={22} color="#6B7280" />
         </TouchableOpacity>
 
-        <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 py-2 mr-2">
+        <View className="flex-1 flex-row items-center bg-background-light rounded-full px-4 py-2 mr-2 border border-gray-200">
           <TextInput
             className="flex-1 text-base text-gray-900"
+            style={{ color: '#111827' }}
             placeholder={selectedImages.length > 0 ? "Add a caption..." : "Type a message..."}
             placeholderTextColor="#9CA3AF"
             value={text}

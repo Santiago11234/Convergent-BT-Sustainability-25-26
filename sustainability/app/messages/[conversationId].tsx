@@ -56,7 +56,7 @@ export default function ChatScreen() {
         ? conversation.participant_2
         : conversation.participant_1;
 
-      setOtherUser(other as User);
+      setOtherUser(other as unknown as User);
     } catch (err) {
       console.error('Error fetching other user:', err);
     } finally {
@@ -131,7 +131,7 @@ export default function ChatScreen() {
 
             <View className="flex-1">
               <View className="flex-row items-center">
-                <Text className="text-lg font-bold text-gray-900">{otherUser.name}</Text>
+                <Text className="text-lg font-bold" style={{ color: '#563D1F' }}>{otherUser.name}</Text>
                 {otherUser.is_verified_seller && (
                   <Ionicons name="checkmark-circle" size={16} color="#8FAA7C" style={{ marginLeft: 4 }} />
                 )}
@@ -139,12 +139,12 @@ export default function ChatScreen() {
             {otherUser.seller_rating && otherUser.seller_rating > 0 ? (
               <View className="flex-row items-center">
                 <Ionicons name="star" size={12} color="#F59E0B" />
-                <Text className="text-xs text-gray-500 ml-1">
+                <Text className="text-xs ml-1" style={{ color: '#563D1F' }}>
                   {otherUser.seller_rating.toFixed(1)} ({otherUser.review_count} reviews)
                 </Text>
               </View>
             ) : (
-              <Text className="text-xs text-gray-500">Unrated</Text>
+              <Text className="text-xs" style={{ color: '#563D1F' }}>Unrated</Text>
             )}
             </View>
           </TouchableOpacity>

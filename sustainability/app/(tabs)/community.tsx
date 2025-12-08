@@ -223,20 +223,20 @@ export default function CommunityScreen() {
 
           {/* Community Details */}
           <View className="p-5">
-            <Text className="text-xl font-black text-gray-900 mb-2" numberOfLines={1}>
+            <Text className="text-xl font-black mb-2" style={{ color: '#563D1F' }} numberOfLines={1}>
               {item.name}
             </Text>
 
             {item.description && (
-              <Text className="text-sm text-gray-600 mb-4 leading-5" numberOfLines={2}>
+              <Text className="text-sm mb-4 leading-5" style={{ color: '#72522A' }} numberOfLines={2}>
                 {item.description}
               </Text>
             )}
 
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
-                <Ionicons name="people" size={18} color="#6B7280" />
-                <Text className="text-sm font-semibold text-gray-700 ml-2">
+                <Ionicons name="people" size={18} color="#72522A" />
+                <Text className="text-sm font-semibold ml-2" style={{ color: '#72522A' }}>
                   {item.member_count} {item.member_count === 1 ? 'member' : 'members'}
                 </Text>
               </View>
@@ -268,9 +268,8 @@ export default function CommunityScreen() {
                       color={isJoined ? '#6B7280' : 'white'}
                     />
                     <Text
-                      className={`text-sm font-bold ml-2 ${
-                        isJoined ? 'text-gray-700' : 'text-white'
-                      }`}
+                      className="text-sm font-bold ml-2"
+                      style={{ color: isJoined ? '#72522A' : '#FFFFFF' }}
                     >
                       {isJoined ? 'Joined' : 'Join'}
                     </Text>
@@ -375,7 +374,7 @@ export default function CommunityScreen() {
           {loading && communities.length === 0 ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#8FAA7C" />
-              <Text className="text-gray-600 mt-4">Loading communities...</Text>
+              <Text className="mt-4" style={{ color: '#72522A' }}>Loading communities...</Text>
             </View>
           ) : (
             <ScrollView
@@ -388,7 +387,7 @@ export default function CommunityScreen() {
               {/* My Communities Section */}
               {myCommunities.length > 0 && (
                 <View className="px-4 pt-2">
-                  <Text className="text-lg font-black text-gray-900 mb-4 px-2">My Communities</Text>
+                  <Text className="text-lg font-black mb-4 px-2" style={{ color: '#563D1F' }}>My Communities</Text>
                   {myCommunities.map((community, index) => (
                     <View key={community.id}>
                       {renderCommunityCard({ item: community, index })}
@@ -399,19 +398,19 @@ export default function CommunityScreen() {
 
               {/* Discover Communities Section */}
               <View className="px-4 pt-4">
-                <Text className="text-lg font-black text-gray-900 mb-4 px-2">
+                <Text className="text-lg font-black mb-4 px-2" style={{ color: '#563D1F' }}>
                   {myCommunities.length > 0 ? 'Discover Communities' : 'Join Communities'}
                 </Text>
 
                 {discoverCommunities.length === 0 ? (
                   <View className="items-center justify-center py-20">
                     <Ionicons name="people-outline" size={64} color="#D1D5DB" />
-                    <Text className="text-lg font-bold text-gray-400 mt-4">
+                    <Text className="text-lg font-bold mt-4" style={{ color: '#72522A' }}>
                       {myCommunities.length > 0
                         ? 'No more communities to discover'
                         : 'No communities yet'}
                     </Text>
-                    <Text className="text-sm text-gray-400 mt-2">Create one to get started!</Text>
+                    <Text className="text-sm mt-2" style={{ color: '#72522A' }}>Create one to get started!</Text>
                   </View>
                 ) : (
                   discoverCommunities.map((community, index) => (
@@ -433,7 +432,8 @@ export default function CommunityScreen() {
             <View className="bg-background-light rounded-2xl px-4 py-3 flex-row items-center">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput
-                className="flex-1 ml-3 text-base text-gray-900"
+                className="flex-1 ml-3 text-base"
+                style={{ color: '#563D1F' }}
                 placeholder="Find people"
                 placeholderTextColor="#9CA3AF"
               />
@@ -442,18 +442,18 @@ export default function CommunityScreen() {
 
           {/* Direct Messages */}
           <View className="px-6">
-            <Text className="text-lg font-black text-gray-900 mb-4">Messages</Text>
+            <Text className="text-lg font-black mb-4" style={{ color: '#563D1F' }}>Messages</Text>
 
             {loadingMessages ? (
               <View className="py-10 items-center">
                 <ActivityIndicator size="large" color="#8FAA7C" />
-                <Text className="text-gray-600 mt-4">Loading messages...</Text>
+                <Text className="mt-4" style={{ color: '#72522A' }}>Loading messages...</Text>
               </View>
             ) : conversations.length === 0 ? (
               <View className="py-10 items-center">
                 <Ionicons name="chatbubbles-outline" size={64} color="#D1D5DB" />
-                <Text className="text-lg font-bold text-gray-400 mt-4">No messages yet</Text>
-                <Text className="text-sm text-gray-400 mt-2">Start a conversation with someone!</Text>
+                <Text className="text-lg font-bold mt-4" style={{ color: '#72522A' }}>No messages yet</Text>
+                <Text className="text-sm mt-2" style={{ color: '#72522A' }}>Start a conversation with someone!</Text>
               </View>
             ) : (
               conversations.map((conversation) => {
@@ -493,7 +493,7 @@ export default function CommunityScreen() {
                           className="flex-row items-center flex-1"
                           onPress={(event) => handleProfilePress(otherParticipant.id, event)}
                         >
-                          <Text className="text-base font-black text-gray-900">
+                          <Text className="text-base font-black" style={{ color: '#563D1F' }}>
                             {otherParticipant.name}
                           </Text>
                           {otherParticipant.is_verified_seller && (
@@ -501,12 +501,12 @@ export default function CommunityScreen() {
                           )}
                         </TouchableOpacity>
                         {conversation.last_message_at && (
-                          <Text className="text-xs text-gray-500">
+                          <Text className="text-xs" style={{ color: '#72522A' }}>
                             {new Date(conversation.last_message_at).toLocaleDateString()}
                           </Text>
                         )}
                       </View>
-                      <Text className="text-sm text-gray-600" numberOfLines={1}>
+                      <Text className="text-sm" style={{ color: '#72522A' }} numberOfLines={1}>
                         {conversation.last_message?.text || 'No messages yet'}
                       </Text>
                     </View>
